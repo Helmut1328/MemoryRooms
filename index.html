@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#f5efe6">
   <meta name="description" content="MemoryRooms – Lernen mit dem Memory-Palace-Prinzip">
   <title>MemoryRooms</title>
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
   <div id="app">
@@ -40,7 +40,7 @@
         <div class="room-intro-line"><span>📍 Merkpunkte als Gedächtnisanker</span><span id="room-marker-count">0 Orte</span></div>
         <div class="room-container">
           <div class="room-background" id="room-bg">
-            <img class="room-photo-bg" id="room-photo-bg" src="room-livingroom.jpg" alt="Gedächtnisraum">
+            <img class="room-photo-bg" id="room-photo-bg" src="room-livingroom.jpg?v=11" alt="Gedächtnisraum">
             <div class="room-photo-shade"></div>
           </div>
           <div id="markers-layer"></div>
@@ -66,6 +66,7 @@
         <div class="room-bottom-bar">
           <button id="btn-quiz-room" class="room-action-card accent" type="button"><span>🎯</span><div><strong>Raum-Quiz</strong><small>Alles Gelernte abfragen</small></div></button>
           <button id="btn-add-marker" class="room-action-card" type="button"><span>＋</span><div><strong>Merkpunkt hinzufügen</strong><small>Ort als Gedächtnisanker</small></div></button>
+          <button id="btn-room-map" class="room-action-card" type="button"><span>🗺️</span><div><strong>Raumplan</strong><small>Rundgang durch die Merkpunkte</small></div></button>
         </div>
         <button id="btn-back-rooms" class="room-back-link" type="button">← Zurück zu meinen Räumen</button>
       </section>
@@ -77,6 +78,17 @@
           <label>Raumname
             <input type="text" id="input-room-name" placeholder="z. B. Wohnzimmer" maxlength="50" autocomplete="off">
           </label>
+          <div class="room-preset-section">
+            <div class="room-preset-head"><strong>Raumvorlage</strong><small>Oder verwende dein eigenes Foto</small></div>
+            <div id="room-preset-grid" class="room-preset-grid">
+              <button type="button" class="room-preset-card" data-preset="livingroom"><span>🛋️</span><strong>Wohnzimmer</strong></button>
+              <button type="button" class="room-preset-card" data-preset="kitchen"><span>🍳</span><strong>Küche</strong></button>
+              <button type="button" class="room-preset-card" data-preset="bedroom"><span>🛏️</span><strong>Schlafzimmer</strong></button>
+              <button type="button" class="room-preset-card" data-preset="office"><span>💻</span><strong>Büro</strong></button>
+              <button type="button" class="room-preset-card" data-preset="workshop"><span>🔨</span><strong>Werkstatt</strong></button>
+              <button type="button" class="room-preset-card" data-preset="garden"><span>🌿</span><strong>Garten</strong></button>
+            </div>
+          </div>
           <label class="photo-label">Eigenes Raumfoto <small>optional · ideal ist ein Foto deines echten Raums</small>
             <input type="file" id="input-room-photo" accept="image/*">
             <div id="room-photo-preview" class="photo-preview room-photo-preview hidden">
@@ -112,6 +124,22 @@
         </div>
       </section>
 
+      <!-- Schematischer Raumplan / Laufweg -->
+      <section id="view-room-map" class="view overlay">
+        <div class="map-card">
+          <div class="map-head">
+            <div><span class="eyebrow">GEDÄCHTNISWEG</span><h2>Dein Rundgang</h2><p>Die Nummern zeigen die Reihenfolge. Mit ▲▼ kannst du deinen persönlichen Laufweg festlegen.</p></div>
+            <button id="btn-close-room-map" class="icon-button" type="button" aria-label="Raumplan schließen">✕</button>
+          </div>
+          <div class="route-map" id="route-map" aria-label="Schematischer Raumplan"></div>
+          <div class="route-legend" id="route-legend"></div>
+          <div class="route-actions">
+            <button id="btn-start-room-walk" class="btn btn-primary btn-large" type="button">🚶 Rundgang starten</button>
+            <button id="btn-close-room-map-bottom" class="btn btn-ghost" type="button">Schließen</button>
+          </div>
+        </div>
+      </section>
+
       <!-- Lernmodus (Unterpunkte nacheinander) -->
       <section id="view-learn" class="view overlay">
         <div class="learn-card" id="learn-card">
@@ -136,7 +164,7 @@
           </div>
           <div id="learn-summary" class="learn-summary hidden">
             <div class="summary-icon">🎉</div>
-            <h2>Merkpunkt abgeschlossen</h2>
+            <h2 id="learn-summary-title">Merkpunkt abgeschlossen</h2>
             <p class="summary-score" id="learn-summary-score"></p>
             <p class="summary-pct" id="learn-summary-pct"></p>
             <div class="learn-actions">
@@ -244,6 +272,10 @@
             <input type="checkbox" id="input-item-quiz" checked>
             Im Quiz verwenden
           </label>
+          <label class="check-label room-photo-toggle">
+            <input type="checkbox" id="input-item-room-photo">
+            Foto im Raum als kleine Gedankenstütze anzeigen
+          </label>
           <div id="quiz-wrong-block">
             <p class="field-hint">Falsche Antworten fürs Quiz (optional)</p>
             <input type="text" id="input-wrong-1" placeholder="Falsche Antwort 1" maxlength="80" autocomplete="off">
@@ -318,7 +350,7 @@
     </nav>
   </div>
 
-  <script src="db.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="db.js?v=11"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>

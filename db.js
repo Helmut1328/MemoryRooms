@@ -82,6 +82,7 @@ function createEmptyItem(overrides) {
     answer: '',
     hint: '',
     photo: null,
+    showInRoom: false,
     useInQuiz: true,
     wrongAnswers: ['', '', ''],
     stats: {
@@ -135,6 +136,7 @@ function migrateMarker(marker) {
       it.stats = { attempts: 0, correct: 0, incorrect: 0, lastReviewed: null, mastery: 0 };
     }
     if (!Array.isArray(it.wrongAnswers)) it.wrongAnswers = ['', '', ''];
+    if (typeof it.showInRoom !== 'boolean') it.showInRoom = false;
     while (it.wrongAnswers.length < 3) it.wrongAnswers.push('');
     if (typeof it.useInQuiz !== 'boolean') it.useInQuiz = true;
     return it;

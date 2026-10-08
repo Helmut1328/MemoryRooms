@@ -12,6 +12,7 @@ let itemPhotoBase64 = null;
 let photoBase64 = null;
 let roomPhotoBase64 = null;
 let editingRoomId = null;
+let editingRoomPreset = 'livingroom';
 
 let isDragging = false;
 let dragMarker = null;
@@ -24,6 +25,9 @@ let learnKnown = 0;
 let learnUnknown = 0;
 let learnMarkerId = null;
 let onlyWrongMode = false;
+let walkMode = false;
+let walkMarkers = [];
+let walkMarkerIndex = -1;
 
 let quizQueue = [];
 let quizIndex = 0;
@@ -58,6 +62,7 @@ const views = {
   rooms: document.getElementById('view-rooms'),
   room: document.getElementById('view-room'),
   markerMenu: document.getElementById('view-marker-menu'),
+  roomMap: document.getElementById('view-room-map'),
   learn: document.getElementById('view-learn'),
   quiz: document.getElementById('view-quiz'),
   edit: document.getElementById('view-edit-marker'),
@@ -92,7 +97,8 @@ async function ensureRoomPhotoCompatibility() {
   for (let i = 0; i < rooms.length; i++) {
     const room = rooms[i];
     if (!Object.prototype.hasOwnProperty.call(room, 'photo')) {
-      room.photo = room.name === 'Wohnzimmer' ? 'room-livingroom.jpg' : null;
+      room.photo = room.name === 'Wohnzimmer' ? 'room-livingroom.jpg?v=10' : null;
+      room.roomPreset = room.name === 'Wohnzimmer' ? 'livingroom' : 'livingroom';
       await saveRoom(room);
     }
   }
@@ -106,7 +112,8 @@ async function ensureDemoRoom() {
     id: generateId(),
     name: 'Wohnzimmer',
     icon: '🛋️',
-    photo: 'room-livingroom.jpg',
+    photo: 'room-livingroom.jpg?v=10',
+    roomPreset: 'livingroom',
     createdAt: new Date().toISOString()
   };
   await saveRoom(demoRoom);
@@ -134,6 +141,7 @@ async function ensureDemoRoom() {
       x: m.x,
       y: m.y,
       items: [],
+      routeOrder: currentMarkers.reduce(function(max, m){ return Math.max(max, Number(m.routeOrder)||0); }, 0) + 1,
       stats: { timesAsked: 0, timesKnown: 0, timesUnknown: 0, lastAsked: null }
     });
   }
@@ -183,6 +191,11 @@ function setupEventListeners() {
   document.getElementById('btn-delete-room').addEventListener('click', deleteCurrentRoom);
   document.getElementById('input-room-photo').addEventListener('change', handleRoomPhotoSelect);
   document.getElementById('btn-remove-room-photo').addEventListener('click', removeRoomPhoto);
+  document.querySelectorAll('.room-preset-card').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      selectRoomPreset(btn.dataset.preset);
+    });
+  });
   document.getElementById('btn-back-rooms').addEventListener('click', function () {
     showView('rooms');
     renderRoomList();
@@ -197,6 +210,10 @@ function setupEventListeners() {
   document.getElementById('btn-add-marker').addEventListener('click', function () {
     openEditMarker(null);
   });
+  document.getElementById('btn-room-map').addEventListener('click', openRoomMap);
+  document.getElementById('btn-close-room-map').addEventListener('click', closeRoomMap);
+  document.getElementById('btn-close-room-map-bottom').addEventListener('click', closeRoomMap);
+  document.getElementById('btn-start-room-walk').addEventListener('click', startRoomWalk);
   document.getElementById('btn-quiz-room').addEventListener('click', startRoomQuiz);
   document.getElementById('btn-side-learn').addEventListener('click', function () {
     if (menuMarker) startLearn(menuMarker, false);
@@ -237,6 +254,7 @@ function setupEventListeners() {
   document.getElementById('btn-knew').addEventListener('click', function () { recordAnswer(true); });
   document.getElementById('btn-not-knew').addEventListener('click', function () { recordAnswer(false); });
   document.getElementById('btn-learn-again').addEventListener('click', function () {
+    if (walkMode) { beginRoomWalk(); return; }
     const m = currentMarkers.find(function (x) { return x.id === learnMarkerId; });
     if (m) startLearn(m, onlyWrongMode);
   });
@@ -361,6 +379,7 @@ async function createNewRoom() {
 function openRoomEditor(roomId) {
   editingRoomId = roomId;
   roomPhotoBase64 = null;
+  editingRoomPreset = 'livingroom';
   const nameInput = document.getElementById('input-room-name');
   const preview = document.getElementById('room-photo-preview');
   const img = document.getElementById('room-photo-preview-img');
@@ -374,6 +393,8 @@ function openRoomEditor(roomId) {
       if (!room) return;
       title.textContent = 'Raum bearbeiten';
       nameInput.value = room.name || '';
+      editingRoomPreset = room.roomPreset || 'livingroom';
+      updateRoomPresetUI();
       deleteBtn.classList.remove('hidden');
       deleteBtn.disabled = rooms.length <= 1;
       deleteBtn.textContent = rooms.length <= 1 ? 'Letzten Raum nicht löschen' : 'Raum löschen';
@@ -386,16 +407,20 @@ function openRoomEditor(roomId) {
       }
       document.getElementById('input-room-photo').value = '';
       views.editRoom.classList.add('active');
+      requestAnimationFrame(function(){ views.editRoom.querySelector('.edit-card').scrollTop = 0; });
     });
   } else {
     title.textContent = 'Neuen Raum erstellen';
     nameInput.value = '';
+    editingRoomPreset = 'livingroom';
+    updateRoomPresetUI();
     deleteBtn.classList.add('hidden');
     deleteBtn.disabled = false;
     deleteBtn.textContent = 'Raum löschen';
     preview.classList.add('hidden');
     document.getElementById('input-room-photo').value = '';
     views.editRoom.classList.add('active');
+    requestAnimationFrame(function(){ views.editRoom.querySelector('.edit-card').scrollTop = 0; });
   }
 }
 
@@ -417,13 +442,14 @@ async function saveCurrentRoom() {
     if (!room) return;
     room.name = name;
     room.photo = roomPhotoBase64;
+    room.roomPreset = editingRoomPreset;
     await saveRoom(room);
     if (currentRoomId === room.id) {
       document.getElementById('room-view-title').textContent = room.name;
       setRoomBackground(room);
     }
   } else {
-    const room = { id: generateId(), name: name, icon: '🏠', photo: roomPhotoBase64, createdAt: new Date().toISOString() };
+    const room = { id: generateId(), name: name, icon: '🏠', photo: roomPhotoBase64, roomPreset: editingRoomPreset, createdAt: new Date().toISOString() };
     await saveRoom(room);
     closeRoomEditor();
     await renderRoomList();
@@ -444,6 +470,19 @@ async function deleteCurrentRoom() {
     closeRoomEditor();
     showView('rooms');
   }
+}
+
+function selectRoomPreset(preset) {
+  editingRoomPreset = preset || 'livingroom';
+  updateRoomPresetUI();
+  // Eine Vorlage ersetzt nur dann ein vorhandenes Raumfoto nicht.
+  // Wird ein eigenes Foto ausgewählt, hat dieses Vorrang.
+}
+
+function updateRoomPresetUI() {
+  document.querySelectorAll('.room-preset-card').forEach(function(btn) {
+    btn.classList.toggle('selected', btn.dataset.preset === editingRoomPreset);
+  });
 }
 
 function handleRoomPhotoSelect(e) {
@@ -492,6 +531,7 @@ async function openRoom(roomId) {
   if (roomTitle) roomTitle.textContent = room.name;
 
   currentMarkers = await getMarkersByRoom(roomId);
+  await ensureMarkerRouteOrder(currentMarkers);
   setRoomBackground(room);
   resetSideMarkerPanel();
   const roomMarkerCount = document.getElementById('room-marker-count');
@@ -500,12 +540,109 @@ async function openRoom(roomId) {
   showView('room');
 }
 
+function clampPercent(value) { return Math.max(4, Math.min(96, value)) + '%'; }
+function compareMarkersByRoute(a, b) {
+  const ao = Number.isFinite(Number(a.routeOrder)) ? Number(a.routeOrder) : 999999;
+  const bo = Number.isFinite(Number(b.routeOrder)) ? Number(b.routeOrder) : 999999;
+  if (ao !== bo) return ao - bo;
+  return String(a.id).localeCompare(String(b.id));
+}
+async function ensureMarkerRouteOrder(markers) {
+  let changed = false;
+  markers.forEach(function(marker, idx) {
+    if (!Number.isFinite(Number(marker.routeOrder))) { marker.routeOrder = idx + 1; changed = true; }
+  });
+  if (changed) for (let i = 0; i < markers.length; i++) await saveMarker(markers[i]);
+  markers.sort(compareMarkersByRoute);
+}
+function getWalkMarkers() {
+  return currentMarkers.slice().sort(compareMarkersByRoute).filter(function(marker) {
+    return (marker.items || []).some(function(item) {
+      return (item.question && item.question.trim()) || (item.title && item.title.trim()) || (item.answer && item.answer.trim());
+    });
+  });
+}
+function openRoomMap() { renderRoomMap(); views.roomMap.classList.add('active'); }
+function closeRoomMap() { views.roomMap.classList.remove('active'); }
+function renderRoomMap() {
+  const map = document.getElementById('route-map');
+  const legend = document.getElementById('route-legend');
+  const ordered = currentMarkers.slice().sort(compareMarkersByRoute);
+  if (!ordered.length) {
+    map.innerHTML = '<div class="route-empty">Noch keine Merkpunkte. Lege zuerst Orte in deinem Raum an.</div>';
+    legend.innerHTML = '';
+    document.getElementById('btn-start-room-walk').disabled = true;
+    return;
+  }
+  document.getElementById('btn-start-room-walk').disabled = getWalkMarkers().length === 0;
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox','0 0 100 100'); svg.setAttribute('class','route-map-svg');
+  const shell = document.createElementNS(ns,'rect');
+  shell.setAttribute('x','3'); shell.setAttribute('y','3'); shell.setAttribute('width','94'); shell.setAttribute('height','94'); shell.setAttribute('rx','5'); shell.setAttribute('class','map-room-shell'); svg.appendChild(shell);
+  const rug = document.createElementNS(ns,'ellipse'); rug.setAttribute('cx','50'); rug.setAttribute('cy','58'); rug.setAttribute('rx','27'); rug.setAttribute('ry','18'); rug.setAttribute('class','map-rug'); svg.appendChild(rug);
+  const pts = ordered.map(function(m){ return [Math.max(8,Math.min(92,Number(m.x)||50)),Math.max(8,Math.min(92,Number(m.y)||50))]; });
+  if (pts.length > 1) { const line=document.createElementNS(ns,'polyline'); line.setAttribute('points',pts.map(function(p){return p.join(',');}).join(' ')); line.setAttribute('class','map-route-line'); svg.appendChild(line); }
+  ordered.forEach(function(marker,idx){
+    const g=document.createElementNS(ns,'g'); g.setAttribute('class','map-node'); g.setAttribute('transform','translate('+pts[idx][0]+','+pts[idx][1]+')');
+    const c=document.createElementNS(ns,'circle'); c.setAttribute('r','5.4'); c.setAttribute('class','map-node-circle'); g.appendChild(c);
+    const t=document.createElementNS(ns,'text'); t.setAttribute('text-anchor','middle'); t.setAttribute('y','1.8'); t.setAttribute('class','map-node-number'); t.textContent=String(idx+1); g.appendChild(t);
+    g.addEventListener('click',function(){ closeRoomMap(); onMarkerTap(marker); }); svg.appendChild(g);
+  });
+  map.innerHTML=''; map.appendChild(svg);
+  legend.innerHTML=ordered.map(function(marker,idx){
+    const count=countItems(marker); const photo=marker.photo ? '<img src="'+marker.photo+'" alt="">' : '<span class="legend-num">'+(idx+1)+'</span>';
+    return '<div class="route-legend-row" data-marker-id="'+marker.id+'">'+photo+'<span class="route-legend-main"><strong>'+ (idx+1)+'. '+escapeHtml(marker.title||'Merkpunkt')+'</strong><small>'+count+' Lernpunkt'+(count===1?'':'e')+'</small></span><span class="route-order-actions"><button type="button" class="route-order-btn" data-dir="up" aria-label="Nach oben">▲</button><button type="button" class="route-order-btn" data-dir="down" aria-label="Nach unten">▼</button></span></div>';
+  }).join('');
+  legend.querySelectorAll('.route-legend-row').forEach(function(row){
+    row.addEventListener('click',function(e){
+      if (e.target.closest('.route-order-btn')) return;
+      const m=currentMarkers.find(function(x){return x.id===row.dataset.markerId;});
+      if(m){closeRoomMap();onMarkerTap(m);}
+    });
+    row.querySelectorAll('.route-order-btn').forEach(function(btn){
+      btn.addEventListener('click',async function(e){
+        e.stopPropagation();
+        await moveMarkerInRoute(row.dataset.markerId, btn.dataset.dir === 'up' ? -1 : 1);
+        renderMarkers(); renderRoomMap();
+      });
+    });
+  });
+}
+async function moveMarkerInRoute(markerId, direction) {
+  const ordered = currentMarkers.slice().sort(compareMarkersByRoute);
+  const index = ordered.findIndex(function(m){ return m.id === markerId; });
+  const target = index + direction;
+  if (index < 0 || target < 0 || target >= ordered.length) return;
+  const a = ordered[index];
+  const b = ordered[target];
+  const temp = Number(a.routeOrder) || index + 1;
+  a.routeOrder = Number(b.routeOrder) || target + 1;
+  b.routeOrder = temp;
+  await saveMarker(a);
+  await saveMarker(b);
+  currentMarkers.sort(compareMarkersByRoute);
+}
+
+async function startRoomWalk() { closeRoomMap(); await beginRoomWalk(); }
+async function beginRoomWalk() {
+  walkMarkers=getWalkMarkers();
+  if (!walkMarkers.length) { alert('Für einen Rundgang braucht es mindestens einen Merkpunkt mit einem Lernpunkt.'); return; }
+  walkMode=true; walkMarkerIndex=0; learnKnown=0; learnUnknown=0; onlyWrongMode=false; loadWalkMarker(); views.learn.classList.add('active');
+}
+function loadWalkMarker() {
+  const marker=walkMarkers[walkMarkerIndex]; learnMarkerId=marker.id;
+  learnQueue=(marker.items||[]).filter(function(it){return (it.question&&it.question.trim())||(it.title&&it.title.trim())||(it.answer&&it.answer.trim());}).map(function(it){return Object.assign({},it,{_markerId:marker.id,_markerTitle:marker.title||'Merkpunkt',_markerPhoto:marker.photo||null});});
+  learnIndex=0; document.getElementById('learn-summary').classList.add('hidden'); document.getElementById('learn-question-block').classList.remove('hidden'); document.getElementById('learn-solution').classList.add('hidden'); showLearnItem();
+}
+
 /* ===== Merkpunkte darstellen ===== */
 
 function setRoomBackground(room) {
   const img = document.getElementById('room-photo-bg');
   const bg = document.getElementById('room-bg');
   if (!img || !bg) return;
+  bg.dataset.preset = (room && room.roomPreset) || 'livingroom';
   if (room && room.photo) {
     img.src = room.photo;
     img.alt = 'Gedächtnisraum ' + (room.name || '');
@@ -520,29 +657,37 @@ function setRoomBackground(room) {
 
 function renderMarkers() {
   markersLayer.innerHTML = '';
-  currentMarkers.forEach(function (marker, idx) {
+  currentMarkers.slice().sort(compareMarkersByRoute).forEach(function (marker, idx) {
     const el = document.createElement('div');
     const has = markerHasContent(marker);
-    const mastered = countItems(marker) > 0 && countMasteredItems(marker) === countItems(marker) && countItems(marker) > 0;
+    const mastered = countItems(marker) > 0 && countMasteredItems(marker) === countItems(marker);
     el.className = 'marker' + (has ? ' has-content' : '') + (mastered ? ' mastered' : '');
     el.dataset.id = marker.id;
     el.style.left = marker.x + '%';
     el.style.top = marker.y + '%';
-    const markerPhoto = marker.photo
-      ? '<img class="marker-photo" src="' + marker.photo + '" alt="">'
-      : '<span class="marker-num">' + (idx + 1) + '</span>';
-    el.innerHTML = markerPhoto +
-      '<span class="marker-label">' + escapeHtml(marker.title || '?') + '</span>' +
-      (countItems(marker) ? '<span class="marker-count">' + countItems(marker) + '</span>' : '');
+    const markerPhoto = marker.photo ? '<img class="marker-photo" src="' + marker.photo + '" alt="">' : '<span class="marker-num">' + (idx + 1) + '</span>';
+    el.innerHTML = markerPhoto + '<span class="marker-label">' + escapeHtml(marker.title || '?') + '</span>' + (countItems(marker) ? '<span class="marker-count">' + countItems(marker) + '</span>' : '');
     el.addEventListener('click', function (e) {
       if (isDragging) return;
       e.stopPropagation();
       onMarkerTap(marker);
     });
     markersLayer.appendChild(el);
+
+    (marker.items || []).forEach(function(item, itemIndex) {
+      if (!item.photo || !item.showInRoom) return;
+      const thumb = document.createElement('button');
+      thumb.type = 'button';
+      thumb.className = 'room-thought-anchor';
+      thumb.style.left = clampPercent(Number(marker.x) + [-8, 8, 0, 10, -10][itemIndex % 5]);
+      thumb.style.top = clampPercent(Number(marker.y) + [-10, -10, 11, 8, 8][itemIndex % 5]);
+      thumb.title = item.title || item.question || 'Gedankenstütze';
+      thumb.innerHTML = '<img src="' + item.photo + '" alt="Gedankenstütze">';
+      thumb.addEventListener('click', function(e) { e.stopPropagation(); onMarkerTap(marker); });
+      markersLayer.appendChild(thumb);
+    });
   });
 }
-
 function onMarkerTap(marker) {
   updateSideMarkerPanel(marker);
   // Jeder Merkpunkt bekommt dasselbe, eindeutig sichtbare Menü.
@@ -759,6 +904,7 @@ function openEditItem(index) {
     document.getElementById('input-item-answer').value = item.answer || '';
     document.getElementById('input-item-hint').value = item.hint || '';
     document.getElementById('input-item-quiz').checked = item.useInQuiz !== false;
+    document.getElementById('input-item-room-photo').checked = item.showInRoom === true;
     const wa = item.wrongAnswers || ['', '', ''];
     document.getElementById('input-wrong-1').value = wa[0] || '';
     document.getElementById('input-wrong-2').value = wa[1] || '';
@@ -776,6 +922,7 @@ function openEditItem(index) {
     document.getElementById('input-item-answer').value = '';
     document.getElementById('input-item-hint').value = '';
     document.getElementById('input-item-quiz').checked = true;
+    document.getElementById('input-item-room-photo').checked = false;
     document.getElementById('input-wrong-1').value = '';
     document.getElementById('input-wrong-2').value = '';
     document.getElementById('input-wrong-3').value = '';
@@ -785,6 +932,7 @@ function openEditItem(index) {
   document.getElementById('quiz-wrong-block').style.display =
     document.getElementById('input-item-quiz').checked ? 'block' : 'none';
   views.editItem.classList.add('active');
+  requestAnimationFrame(function(){ views.editItem.querySelector('.edit-card').scrollTop = 0; });
 }
 
 function closeEditItem() {
@@ -813,6 +961,7 @@ function saveCurrentItem() {
     hint: document.getElementById('input-item-hint').value.trim(),
     photo: itemPhotoBase64,
     useInQuiz: document.getElementById('input-item-quiz').checked,
+    showInRoom: document.getElementById('input-item-room-photo').checked && !!itemPhotoBase64,
     wrongAnswers: [
       document.getElementById('input-wrong-1').value.trim(),
       document.getElementById('input-wrong-2').value.trim(),
@@ -960,6 +1109,9 @@ function compressImage(dataUrl, maxWidth, quality) {
 
 function startLearn(marker, wrongOnly) {
   closeMarkerMenu();
+  walkMode = false;
+  walkMarkers = [];
+  walkMarkerIndex = -1;
   learnMarkerId = marker.id;
   onlyWrongMode = !!wrongOnly;
 
@@ -1010,8 +1162,9 @@ function showLearnItem() {
       placeWrap.classList.remove('has-photo');
     }
   }
-  document.getElementById('learn-progress').textContent =
-    (learnIndex + 1) + ' von ' + learnQueue.length;
+  document.getElementById('learn-progress').textContent = walkMode
+    ? ('Ort ' + (walkMarkerIndex + 1) + ' von ' + walkMarkers.length + ' · Punkt ' + (learnIndex + 1) + ' von ' + learnQueue.length)
+    : ((learnIndex + 1) + ' von ' + learnQueue.length);
   const promptEl = document.getElementById('learn-question-text');
   const promptLabel = document.querySelector('#learn-question-block .prompt');
   const displayPrompt = item.question || item.title || 'Lernpunkt';
@@ -1081,13 +1234,19 @@ async function recordAnswer(knew) {
 
   learnIndex += 1;
   if (learnIndex >= learnQueue.length) {
-    showLearnSummary();
+    if (walkMode && walkMarkerIndex < walkMarkers.length - 1) {
+      walkMarkerIndex += 1;
+      loadWalkMarker();
+    } else {
+      showLearnSummary();
+    }
   } else {
     showLearnItem();
   }
 }
 
 function showLearnSummary() {
+  document.getElementById('learn-summary-title').textContent = walkMode ? 'Rundgang abgeschlossen' : 'Merkpunkt abgeschlossen';
   document.getElementById('learn-question-block').classList.add('hidden');
   document.getElementById('learn-solution').classList.add('hidden');
   document.getElementById('learn-summary').classList.remove('hidden');
@@ -1103,6 +1262,9 @@ function closeLearn() {
   views.learn.classList.remove('active');
   learnQueue = [];
   learnMarkerId = null;
+  walkMode = false;
+  walkMarkers = [];
+  walkMarkerIndex = -1;
   if (currentRoomId) {
     getMarkersByRoom(currentRoomId).then(function (list) {
       currentMarkers = list;

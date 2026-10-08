@@ -1,21 +1,24 @@
-# MemoryRooms v9
+# MemoryRooms v11
 
-MemoryRooms – lokale Lern-Web-App nach dem Loci-/Memory-Palace-Prinzip.
+MemoryRooms – Lernen mit dem Loci-/Memory-Palace-Prinzip.
 
-## Neu in v9
-- Jeder Raum kann ein eigenes, lokal gespeichertes Raumfoto haben.
-- Eigene Fotos können direkt auf dem iPhone/iPad aus der Fotos-App ausgewählt werden.
-- Bestehende v8-Räume bleiben erhalten; der bisherige Demo-Wohnraum behält sein Standardfoto.
-- Lernpunkt: **Titel ODER Frage** reicht. Beide Felder sind optional einzeln nutzbar; eine Antwort/Lösung ist erforderlich.
-- Im Lernmodus wird nur die passende Eingabe als eigentliche Aufgabe angezeigt.
-- Der Lernmodus läuft auf dem iPhone vollflächig und wird nicht mehr von der unteren Navigation überlagert.
-- Raumverwaltung erfolgt über das Bearbeiten-Menü; der letzte Raum kann nicht gelöscht werden.
-- Raumfotos und Einstellungen werden mit dem JSON-Backup mitgesichert.
-- Keine KI, keine Cloud-Datenbank. Persönliche Daten bleiben lokal im Browser.
+## v11 – Gedächtnisweg
+- Schematischer Raumplan in Draufsicht
+- Persönliche Reihenfolge der Merkpunkte über ▲ / ▼
+- Geführter Rundgang durch die Merkpunkte
+- Kleine Lernpunkt-Fotos können direkt im Raum als visuelle Gedankenstützen angezeigt werden
+- Fotos bleiben lokal in IndexedDB
+- Bestehende Räume, Merkpunkte, Lernpunkte und Fortschritt bleiben erhalten
+- Keine KI, keine Cloud-Datenbank
+- Cache-Busting für `v11` bei CSS, JavaScript und Raumfoto
 
 ## Dateien
-- `index.html`
-- `app.js`
-- `db.js`
-- `styles.css`
-- `room-livingroom.jpg`
+- index.html
+- app.js
+- db.js
+- styles.css
+- room-livingroom.jpg
+- room-livingroom.png
+
+## Wichtig
+Vor einem größeren Update Backup über Einstellungen exportieren. Die Datenbank bleibt bei Version 3; v11 ergänzt nur Datenfelder abwärtskompatibel.
