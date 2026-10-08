@@ -4,34 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MemoryRooms">
 <meta name="theme-color" content="#f5efe6">
-<title>MemoryRooms v13</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>MemoryRooms v14</title>
 <style>
-:root{--paper:#fffaf3;--bg:#f5efe6;--ink:#332a23;--muted:#76695d;--line:#ded1c1;--blue:#2376d8;--green:#2f8b4b;--red:#b94338;--shadow:0 14px 40px rgba(55,38,22,.14);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+:root{--paper:#fffaf3;--bg:#f5efe6;--ink:#332a23;--muted:#76695d;--line:#ded1c1;--blue:#2376d8;--green:#2f8b4b;--red:#b94338;--orange:#c9741a;--shadow:0 14px 40px rgba(55,38,22,.14);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
 button,input,textarea{font:inherit}button{cursor:pointer}#app{min-height:100vh;padding-top:var(--safe-top);padding-bottom:calc(76px + var(--safe-bottom))}
 header{padding:18px 18px 12px;max-width:1100px;margin:auto}.brand{display:flex;gap:12px;align-items:center}.brand-icon{font-size:30px}.brand h1{font-size:23px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
 main{max-width:1100px;margin:auto;padding:0 14px}.view{display:none}.view.active{display:block}
 .panel,.room-card,.modal-card{background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
-.panel{padding:18px;margin:12px 0}.room-list{display:grid;gap:12px}.room-card{display:flex;gap:12px;align-items:center;padding:12px;position:relative}.room-card-photo,.room-thumb{width:82px;height:66px;border-radius:14px;object-fit:cover;background:#e9dfd3;flex:none}.room-card-icon{width:82px;height:66px;border-radius:14px;display:grid;place-items:center;background:#e9dfd3;font-size:34px;flex:none}.room-info{min-width:0;padding-right:38px}.room-info h2{font-size:16px;margin:0 0 5px}.meta{font-size:11px;color:var(--muted)}.room-menu{position:absolute;right:10px;top:10px;border:0;background:transparent;font-size:24px;color:var(--muted)}
-.btn{border:0;border-radius:15px;padding:13px 16px;font-weight:800;touch-action:manipulation}.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:#eee5da;color:var(--ink)}.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}.btn-ghost{background:transparent;color:var(--muted)}.btn-theme{background:#493c31;color:#fff}.full{width:100%}.actions{display:grid;gap:8px;margin-top:12px}.actions.two{grid-template-columns:1fr 1fr}
+.panel{padding:18px;margin:12px 0}.panel h2{margin:0 0 12px}.room-list{display:grid;gap:12px}.room-card{display:flex;gap:12px;align-items:center;padding:12px;position:relative}.room-card-photo,.room-thumb{width:82px;height:66px;border-radius:14px;object-fit:cover;background:#e9dfd3;flex:none}.room-card-icon{width:82px;height:66px;border-radius:14px;display:grid;place-items:center;background:#e9dfd3;font-size:34px;flex:none}.room-info{min-width:0;padding-right:38px;flex:1}.room-info h2{font-size:16px;margin:0 0 5px}.meta{font-size:11px;color:var(--muted)}.room-menu{position:absolute;right:10px;top:10px;border:0;background:transparent;font-size:24px;color:var(--muted)}
+.btn{border:0;border-radius:15px;padding:13px 16px;font-weight:800;touch-action:manipulation}.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:#eee5da;color:var(--ink)}.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}.btn-warn{background:var(--orange);color:#fff}.btn-ghost{background:transparent;color:var(--muted)}.btn-theme{background:#493c31;color:#fff}.full{width:100%}.actions{display:grid;gap:8px;margin-top:12px}.actions.two{grid-template-columns:1fr 1fr}.actions.three{grid-template-columns:1fr 1fr 1fr}
 .room-create{display:grid;gap:9px;margin:14px 0}.room-create .btn{width:100%}
 .room-head{display:flex;gap:10px;align-items:center;margin:8px 0}.room-head button{border:0;background:transparent;font-size:28px}.room-head h2{margin:0;font-size:20px}.room-head p{margin:2px 0;color:var(--muted);font-size:11px}
 .room-wrap{position:relative;overflow:hidden;border-radius:24px;border:1px solid #cdbda9;background:#cdbda9;box-shadow:var(--shadow);min-height:58vh}.room-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.room-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,10,0,.08),rgba(20,10,0,.15))}
-.marker{position:absolute;transform:translate(-50%,-50%);z-index:5;min-width:64px;max-width:130px;padding:4px 7px;background:rgba(255,255,255,.94);border:2px solid var(--blue);border-radius:13px;box-shadow:0 6px 18px rgba(30,20,10,.28);text-align:center;font-size:10px;font-weight:800}.marker img{width:38px;height:38px;border-radius:9px;object-fit:cover;display:block;margin:auto}.marker .num{display:block;font-size:18px;color:var(--blue)}.marker .count{display:inline-block;margin-left:4px;background:var(--blue);color:#fff;border-radius:10px;padding:1px 5px;font-size:9px}.thought{position:absolute;z-index:6;width:44px;height:44px;border:3px solid #fff;border-radius:12px;box-shadow:0 5px 15px rgba(30,20,10,.3);overflow:hidden;background:#fff}.thought img{width:100%;height:100%;object-fit:cover}
-.room-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.room-tools .btn{background:var(--paper)}
-.overlay{position:fixed;z-index:50;inset:0;background:rgba(30,20,12,.42);backdrop-filter:blur(7px);display:none;align-items:flex-end;justify-content:center;padding-top:var(--safe-top)}.overlay.active{display:flex}.modal-card{width:min(760px,100%);max-height:calc(100vh - 10px);overflow:auto;padding:18px;border-radius:25px 25px 0 0;padding-bottom:calc(22px + var(--safe-bottom))}
-.modal-card h2{margin:0 0 14px}.eyebrow{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:900}.field{display:grid;gap:6px;margin:12px 0;font-size:12px;font-weight:800}.field input,.field textarea,.answer-input{width:100%;border:1px solid var(--line);border-radius:14px;background:#fffdf9;padding:12px;color:var(--ink);font-size:16px}.field textarea{min-height:80px;resize:vertical}
-.item-card{border:1px solid var(--line);border-radius:17px;padding:11px;margin:9px 0;background:#fffdf9}.item-head{display:flex;justify-content:space-between;gap:8px}.item-card small{color:var(--muted)}.item-delete{border:0;background:transparent;color:var(--red)}
-.learn-card{width:min(700px,100%);max-height:calc(100vh - 10px);overflow:auto;background:var(--paper);border-radius:25px;padding:20px 18px calc(24px + var(--safe-bottom));box-shadow:var(--shadow)}.learn-anchor{display:flex;gap:10px;align-items:center}.learn-anchor img{width:55px;height:55px;border-radius:14px;object-fit:cover}.progress{text-align:right;color:var(--muted);font-size:11px;margin:8px 0}.prompt{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:900}.learn-q{font-size:23px;line-height:1.22;font-weight:850;margin:8px 0 16px}.answer-box{padding:14px;background:#f7efe5;border:1px solid var(--line);border-radius:18px}.solution{margin-top:12px;padding:15px;border:1px solid #d5c4b1;border-radius:18px;background:#fffdf9}.solution-answer{font-size:21px;font-weight:900}.hint{margin-top:10px;padding:10px 12px;border-radius:13px;background:#eef6ff;color:#34516e;font-size:12px}.feedback{padding:12px;border-radius:14px;margin-top:10px;font-weight:800}.feedback.ok{background:#e7f5eb;color:#216b36}.feedback.bad{background:#fff0ed;color:#94372e}
+.marker{position:absolute;transform:translate(-50%,-50%);z-index:5;min-width:64px;max-width:130px;padding:4px 7px;background:rgba(255,255,255,.94);border:2px solid var(--blue);border-radius:13px;box-shadow:0 6px 18px rgba(30,20,10,.28);text-align:center;font-size:10px;font-weight:800;color:var(--ink)}.marker img{width:38px;height:38px;border-radius:9px;object-fit:cover;display:block;margin:auto}.marker .num{display:block;font-size:18px;color:var(--blue)}.marker .count{display:inline-block;margin-left:4px;background:var(--blue);color:#fff;border-radius:10px;padding:1px 5px;font-size:9px}.marker .dueDot{display:inline-block;margin-left:4px;background:var(--orange);color:#fff;border-radius:10px;padding:1px 5px;font-size:9px}.marker.arrange{outline:3px dashed var(--blue);outline-offset:3px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.thought{position:absolute;z-index:6;width:44px;height:44px;border:3px solid #fff;border-radius:12px;box-shadow:0 5px 15px rgba(30,20,10,.3);overflow:hidden;background:#fff;padding:0}.thought img{width:100%;height:100%;object-fit:cover}
+.room-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.room-tools .btn{background:var(--paper);border:1px solid var(--line);color:var(--ink)}
+.arrange-hint{margin:10px 0 0;padding:10px 12px;border-radius:13px;background:#eef6ff;color:#34516e;font-size:12px}
+.overlay{position:fixed;z-index:50;inset:0;background:rgba(30,20,12,.42);backdrop-filter:blur(7px);display:none;align-items:flex-end;justify-content:center;padding-top:var(--safe-top)}.overlay.active{display:flex}#sheetOverlay{z-index:60}.modal-card{width:min(760px,100%);max-height:calc(100vh - 10px);overflow:auto;padding:18px;border-radius:25px 25px 0 0;padding-bottom:calc(22px + var(--safe-bottom))}
+.modal-card h2{margin:0 0 14px}.eyebrow{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:900}.field{display:grid;gap:6px;margin:12px 0;font-size:12px;font-weight:800}.field input,.field textarea,.answer-input{width:100%;border:1px solid var(--line);border-radius:14px;background:#fffdf9;padding:12px;color:var(--ink);font-size:16px}.field textarea,textarea.answer-input{min-height:80px;resize:vertical}
+.check{display:flex;gap:8px;align-items:center;font-size:12px;font-weight:700;margin:6px 0}.check input{width:auto}
+.item-card{border:1px solid var(--line);border-radius:17px;padding:11px;margin:9px 0;background:#fffdf9}.item-head{display:flex;justify-content:space-between;gap:8px}.item-card small{color:var(--muted)}.item-delete{border:0;background:transparent;color:var(--red)}.item-thumb{width:100%;max-height:120px;object-fit:contain;border-radius:12px;margin-top:6px}.link-btn{border:0;background:transparent;color:var(--red);font-size:12px;font-weight:700;padding:4px 0;text-align:left}
+.tip{margin:10px 0;padding:10px 12px;border-radius:13px;background:#fff6e0;color:#6a5321;font-size:12px;line-height:1.4}
+.learn-card{width:min(700px,100%);max-height:calc(100vh - 10px);overflow:auto;background:var(--paper);border-radius:25px;padding:20px 18px calc(24px + var(--safe-bottom));box-shadow:var(--shadow)}.learn-anchor{display:flex;gap:10px;align-items:center}.learn-anchor img{width:55px;height:55px;border-radius:14px;object-fit:cover}.progress{text-align:right;color:var(--muted);font-size:11px;margin:8px 0}.prompt{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:900}.learn-q{font-size:23px;line-height:1.22;font-weight:850;margin:8px 0 16px}.answer-box{padding:14px;background:#f7efe5;border:1px solid var(--line);border-radius:18px}.solution{margin-top:12px;padding:15px;border:1px solid #d5c4b1;border-radius:18px;background:#fffdf9}.solution-answer{font-size:21px;font-weight:900;white-space:pre-wrap}.your-answer{margin-top:8px;font-size:12px;color:var(--muted);white-space:pre-wrap}.hint{margin-top:10px;padding:10px 12px;border-radius:13px;background:#eef6ff;color:#34516e;font-size:12px}.feedback{padding:12px;border-radius:14px;margin-top:10px;font-weight:800}.feedback.ok{background:#e7f5eb;color:#216b36}.feedback.bad{background:#fff0ed;color:#94372e}.feedback.neutral{background:#f3ede4;color:var(--ink)}
+.rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.rate-grid .btn{padding:11px 8px}.rate-grid small{display:block;font-weight:600;font-size:10px;opacity:.9;margin-top:2px}.rate-grid .suggest{outline:3px solid rgba(35,118,216,.5);outline-offset:2px}
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{padding:15px;border:1px solid var(--line);border-radius:17px;background:#fffdf9}.stat strong{font-size:24px;display:block}.stat span{font-size:11px;color:var(--muted)}
+.bar{height:8px;border-radius:6px;background:#eadfd2;overflow:hidden;margin-top:6px}.bar>i{display:block;height:100%;background:var(--green)}.stat-row{padding:10px 0;border-top:1px solid var(--line);font-size:13px}.stat-row:first-of-type{border-top:0}.stat-row small{color:var(--muted)}.sub{margin:18px 0 6px;font-size:13px;font-weight:900}
+.due-card{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:0 0 12px;background:#fff1de;border-color:#e9cfa6}.due-card strong{font-size:15px}.due-card p{margin:2px 0 0;font-size:12px;color:var(--muted)}.due-card .btn{flex:none}
+.backup-note{margin:0 0 12px;padding:10px 12px;border-radius:14px;background:#eef6ff;color:#34516e;font-size:12px;display:flex;gap:10px;align-items:center;justify-content:space-between}.backup-note button{border:0;background:#fff;border-radius:10px;padding:7px 10px;font-weight:800;color:#34516e;flex:none}
 nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px + var(--safe-bottom));background:rgba(255,250,243,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;gap:5px}nav button{border:0;background:transparent;border-radius:14px;padding:7px 12px;color:var(--muted);font-size:11px}nav button.active{background:#e9e0d5;color:var(--ink);font-weight:900}
 .hidden{display:none!important}.muted{color:var(--muted)}.danger{color:var(--red)}
-
 .room-preset-section{margin:4px 0 15px;padding:12px;border:1px solid var(--line);border-radius:18px;background:#f8f2e9}.room-preset-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:9px}.room-preset-head strong{font-size:11px}.room-preset-head small{font-size:9px;color:var(--muted)}.room-preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.room-preset-card{min-height:72px;border:1px solid var(--line);border-radius:14px;background:#fffdf9;color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.room-preset-card span{font-size:28px}.room-preset-card strong{font-size:9px}.room-preset-card.selected{border:2px solid var(--blue);background:#edf6ff}.room-preset-card:active{transform:scale(.97)}
 @media(min-width:760px){.room-preset-grid{grid-template-columns:repeat(6,1fr)}}
-@media(min-width:760px){#app{padding-bottom:30px}nav{position:static;max-width:700px;margin:18px auto;border:1px solid var(--line);border-radius:18px}.room-create{grid-template-columns:1fr 1fr}.modal-card{border-radius:25px;margin-bottom:20px}.overlay{align-items:center}.room-wrap{min-height:680px}.stats-grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:760px){#app{padding-bottom:30px}nav{position:static;max-width:700px;margin:18px auto;border:1px solid var(--line);border-radius:18px}.room-create{grid-template-columns:1fr 1fr}.modal-card{border-radius:25px;margin-bottom:20px}.overlay{align-items:center}.room-wrap{min-height:680px}.stats-grid{grid-template-columns:repeat(4,1fr)}.rate-grid{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
 <body>
@@ -39,6 +49,8 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
 <header><div class="brand"><div class="brand-icon">🧠</div><div><h1 id="headerTitle">MemoryRooms</h1><p id="headerSub">Dein virtueller Gedächtnisraum</p></div></div></header>
 <main>
 <section id="rooms" class="view active">
+  <div id="dueBox"></div>
+  <div id="backupBox"></div>
   <div id="roomList" class="room-list"></div>
   <div class="room-create">
     <button class="btn btn-primary" id="newRoom">+ Neuen Raum erstellen</button>
@@ -48,32 +60,84 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
 
 <section id="room" class="view">
   <div class="room-head"><button id="backRooms">‹</button><div><h2 id="roomTitle"></h2><p id="roomSub"></p></div></div>
-  <div class="room-wrap" id="roomWrap"><img id="roomBg" class="room-bg" src="room-livingroom.jpg" alt=""><div class="room-shade"></div><div id="markers"></div></div>
+  <div class="room-wrap" id="roomWrap"><img id="roomBg" class="room-bg" alt=""><div class="room-shade"></div><div id="markers"></div></div>
+  <div id="arrangeHint" class="arrange-hint hidden">📍 Zieh die Merkpunkte an die passende Stelle im Raum. Ein Tipp öffnet das Menü. Tippe auf „Fertig", wenn alles sitzt.</div>
   <div class="room-tools">
-    <button class="btn" id="walkBtn">🚶 Rundgang</button><button class="btn" id="addMarker">＋ Merkpunkt</button>
+    <button class="btn" id="walkBtn">🚶 Rundgang</button><button class="btn" id="dueRoomBtn">🔀 Fällige üben</button>
+    <button class="btn" id="recallBtn">🧭 Raum im Kopf</button><button class="btn" id="addMarker">＋ Merkpunkt</button>
   </div>
-  <div class="actions two"><button class="btn btn-secondary" id="editRoom">✏️ Raum bearbeiten</button><button class="btn btn-secondary" id="roomStats">📊 Statistik</button></div>
+  <div class="actions three"><button class="btn btn-secondary" id="arrangeBtn">📍 Anordnen</button><button class="btn btn-secondary" id="editRoom">✏️ Raum</button><button class="btn btn-secondary" id="roomStats">📊 Statistik</button></div>
 </section>
 
-<section id="stats" class="view"><div class="panel"><h2>📊 Lernfortschritt</h2><div id="statsGrid" class="stats-grid"></div></div></section>
-<section id="settings" class="view"><div class="panel"><h2>⚙️ Einstellungen & Backup</h2><p class="muted">Alle Daten bleiben lokal auf diesem Gerät.</p><div class="actions"><button class="btn btn-secondary" id="export">Backup exportieren</button><label class="btn btn-secondary" style="text-align:center">Backup importieren<input id="import" type="file" accept=".json,application/json" hidden></label><button class="btn btn-danger" id="clear">Alle Daten löschen</button></div></div></section>
+<section id="stats" class="view"><div class="panel"><h2 id="statsTitle">📊 Lernfortschritt</h2><div id="statsGrid" class="stats-grid"></div><div id="statsExtra"></div></div></section>
+
+<section id="settings" class="view">
+  <div class="panel"><h2>⚙️ Einstellungen</h2>
+    <label class="check"><input type="checkbox" id="optTyped"> Antwort erst eintippen, dann aufdecken (empfohlen)</label>
+    <p class="muted" style="font-size:12px;margin:6px 0 0">Aktives Abrufen aus dem Gedächtnis prägt sich deutlich besser ein als bloßes Nachschauen.</p>
+    <p class="muted" id="storageInfo" style="font-size:12px"></p>
+  </div>
+  <div class="panel"><h2>💾 Backup</h2><p class="muted">Alle Daten bleiben lokal auf diesem Gerät. Sichere sie regelmäßig.</p><p class="muted" id="backupInfo" style="font-size:12px"></p><div class="actions"><button class="btn btn-secondary" id="export">Backup exportieren</button><label class="btn btn-secondary" style="text-align:center">Backup importieren<input id="import" type="file" accept=".json,application/json" hidden></label><button class="btn btn-danger" id="clear">Alle Daten löschen</button></div></div>
+  <div class="panel"><h2>🧠 So lernst du richtig</h2>
+    <p style="font-size:13px;line-height:1.5;margin:0">1. Verknüpfe jeden Lernpunkt mit einem <b>übertriebenen, bewegten Bild</b> an seinem Ort.<br>2. <b>Erst abrufen, dann nachschauen</b>: Tippe, was du weißt.<br>3. Bewerte ehrlich. „Nochmal" ist kein Scheitern, sondern der Lernmoment.<br>4. Üb <b>jeden Tag kurz</b>: Die App sagt dir, was fällig ist.<br>5. Geh den Raum auch mal <b>im Kopf rückwärts oder zufällig</b> ab.</p>
+  </div>
+  <p class="muted" style="text-align:center;font-size:11px">MemoryRooms v14</p>
+</section>
 </main>
 
 <nav>
 <button data-view="rooms" class="active">🏠<br>Räume</button><button data-view="room">🧠<br>Lernen</button><button data-view="stats">📊<br>Statistik</button><button data-view="settings">⚙️<br>Einstellungen</button>
 </nav>
 
+<!-- Lernen -->
 <div class="overlay" id="learnOverlay"><div class="learn-card">
-  <div class="learn-anchor"><img id="learnPhoto" class="hidden"><div><span class="eyebrow">GEDÄCHTNISANKER</span><strong id="learnAnchor"></strong></div></div>
-  <div id="learnProgress" class="progress"></div><p class="prompt" id="learnPrompt">JETZT AUS DEM GEDÄCHTNIS</p><div class="learn-q" id="learnQuestion"></div>
-  <div id="normalLearn"><div class="actions"><button class="btn btn-primary" id="showSolution">Lösung anzeigen</button><button class="btn btn-ghost" id="closeLearn">Abbrechen</button></div></div>
-  <div id="themeLearn" class="hidden"><div class="answer-box"><label class="field" style="margin:0"><span>Deine Antwort</span><input class="answer-input" id="themeAnswer" placeholder="Bundesland – Hauptstadt" autocomplete="off"></label><button class="btn btn-primary full" id="checkTheme" style="margin-top:9px">Antwort prüfen</button></div><button class="btn btn-ghost full" id="closeTheme">Abbrechen</button></div>
-  <div id="solution" class="solution hidden"><div class="eyebrow">LÖSUNG</div><div class="solution-answer" id="solutionText"></div><div id="solutionPhotoWrap"></div><div class="hint hidden" id="solutionHint"></div><div class="feedback hidden" id="feedback"></div><div class="actions two"><button class="btn btn-success" id="knew">✅ Gewusst</button><button class="btn btn-danger" id="notKnew">❌ Nicht gewusst</button><button class="btn btn-primary hidden" id="themeNext">Weiter</button></div></div>
-  <div id="learnDone" class="hidden"><div style="font-size:40px;text-align:center">🎉</div><h2 id="doneTitle">Rundgang abgeschlossen</h2><p id="doneScore" class="muted"></p><button class="btn btn-primary full" id="doneClose">Fertig</button></div>
+  <div class="learn-anchor"><img id="learnPhoto" class="hidden" alt=""><div><span class="eyebrow">GEDÄCHTNISANKER</span><br><strong id="learnAnchor"></strong></div></div>
+  <div id="learnProgress" class="progress"></div>
+  <div id="learnMain">
+    <p class="prompt" id="learnPrompt">JETZT AUS DEM GEDÄCHTNIS</p><div class="learn-q" id="learnQuestion"></div>
+    <div id="phaseAnswer">
+      <div id="typeBox" class="answer-box"><label class="field" style="margin:0"><span>Deine Antwort</span><textarea class="answer-input" id="typed" rows="2" placeholder="Was weißt du dazu?" autocomplete="off"></textarea></label><div class="actions two"><button class="btn btn-primary" id="checkTyped">Antwort prüfen</button><button class="btn btn-secondary" id="dontKnow">Weiß ich nicht</button></div></div>
+      <div id="thinkBox" class="answer-box hidden"><p style="margin:0 0 10px;font-size:13px">Denk zuerst an die Antwort, dann decke sie auf.</p><button class="btn btn-primary full" id="revealBtn">Lösung aufdecken</button></div>
+    </div>
+    <div id="solution" class="solution hidden">
+      <div class="eyebrow">LÖSUNG</div><div class="solution-answer" id="solutionText"></div><div class="your-answer hidden" id="yourAnswer"></div><div id="solutionPhotoWrap"></div><div class="hint hidden" id="solutionHint"></div><div class="feedback hidden" id="feedback"></div>
+      <div class="rate-grid">
+        <button class="btn btn-danger" data-rate="0">Nochmal<small id="rv0"></small></button>
+        <button class="btn btn-warn" data-rate="1">Schwer<small id="rv1"></small></button>
+        <button class="btn btn-success" data-rate="2">Gut<small id="rv2"></small></button>
+        <button class="btn btn-primary" data-rate="3">Leicht<small id="rv3"></small></button>
+      </div>
+    </div>
+    <button class="btn btn-ghost full" id="closeLearn" style="margin-top:8px">Abbrechen</button>
+  </div>
+  <div id="learnDone" class="hidden"><div style="font-size:40px;text-align:center">🎉</div><h2 id="doneTitle" style="text-align:center">Geschafft</h2><p id="doneScore" class="muted" style="text-align:center"></p><button class="btn btn-primary full" id="doneClose">Fertig</button></div>
 </div></div>
 
-<div class="overlay" id="markerOverlay"><div class="modal-card"><h2 id="markerModalTitle">Merkpunkt</h2><div class="field"><span>Titel</span><input id="markerTitle" placeholder="z. B. Badewanne"></div><div class="field"><span>Beschreibung / Gedankenstütze</span><input id="markerDesc" placeholder="z. B. Baden in der Wanne"></div><div class="field"><span>Foto zum Merkpunkt (optional)</span><input id="markerFile" type="file" accept="image/*"></div><div id="items"></div><button class="btn btn-secondary full" id="addItem">＋ Lernpunkt hinzufügen</button><div class="actions"><button class="btn btn-primary full" id="saveMarker">Speichern</button><button class="btn btn-danger full hidden" id="deleteMarker">Merkpunkt löschen</button><button class="btn btn-ghost full" id="cancelMarker">Abbrechen</button></div></div></div>
+<!-- Raum im Kopf -->
+<div class="overlay" id="recallOverlay"><div class="learn-card">
+  <div class="learn-anchor"><img id="rcPhoto" class="hidden" alt=""><div><span class="eyebrow" id="rcPos">ORT</span><br><strong id="rcTitle"></strong></div></div>
+  <div id="rcMain">
+    <div id="rcAsk"><div class="learn-q" style="font-size:18px;margin-top:14px">Geh im Kopf an diesen Ort. Was hast du hier abgelegt?</div><textarea class="answer-input" id="rcText" rows="3" placeholder="Schreib auf, woran du dich erinnerst …"></textarea><div class="actions"><button class="btn btn-primary" id="rcReveal">Aufdecken</button><button class="btn btn-ghost" id="rcCancel">Abbrechen</button></div></div>
+    <div id="rcSolution" class="hidden"><div class="eyebrow" style="margin-top:14px">DAS LIEGT HIER</div><div id="rcList"></div><p class="muted" style="font-size:12px">Wie viel wusstest du?</p><div class="actions three"><button class="btn btn-success" data-rc="all">Alles</button><button class="btn btn-warn" data-rc="part">Teilweise</button><button class="btn btn-danger" data-rc="none">Fast nichts</button></div></div>
+  </div>
+  <div id="rcDone" class="hidden"><div style="font-size:40px;text-align:center">🧭</div><h2 style="text-align:center">Raum abgegangen</h2><p id="rcScore" class="muted" style="text-align:center"></p><button class="btn btn-primary full" id="rcClose">Fertig</button></div>
+</div></div>
 
+<!-- Allgemeines Auswahlmenü -->
+<div class="overlay" id="sheetOverlay"><div class="modal-card"><h2 id="sheetTitle"></h2><p class="muted hidden" id="sheetDesc" style="font-size:13px;margin:-6px 0 8px"></p><div class="actions" id="sheetBody"></div></div></div>
+
+<!-- Merkpunkt bearbeiten -->
+<div class="overlay" id="markerOverlay"><div class="modal-card"><h2 id="markerModalTitle">Merkpunkt</h2>
+<div class="field"><span>Titel</span><input id="markerTitle" placeholder="z. B. Badewanne"></div>
+<div class="field"><span>Beschreibung</span><input id="markerDesc" placeholder="z. B. Baden in der Wanne"></div>
+<div class="field"><span>Position in der Route</span><input id="markerOrder" type="number" min="1" inputmode="numeric"></div>
+<div class="field"><span>Foto zum Merkpunkt (optional)</span><input id="markerFile" type="file" accept="image/*"></div>
+<button class="link-btn hidden" id="markerPhotoRemove">Foto entfernen</button>
+<div class="tip">💡 <b>Merk-Tipp:</b> Mach aus jedem Lernpunkt ein übertriebenes, bewegtes Bild genau an diesem Ort, mit Geräuschen, Gerüchen, Gefühlen und dir selbst mittendrin. Je ungewöhnlicher, desto besser bleibt es hängen.</div>
+<div id="items"></div><button class="btn btn-secondary full" id="addItem">＋ Lernpunkt hinzufügen</button>
+<div class="actions"><button class="btn btn-primary full" id="saveMarker">Speichern</button><button class="btn btn-danger full hidden" id="deleteMarker">Merkpunkt löschen</button><button class="btn btn-ghost full" id="cancelMarker">Abbrechen</button></div></div></div>
+
+<!-- Raum bearbeiten -->
 <div class="overlay" id="roomOverlay"><div class="modal-card"><h2>Raum bearbeiten</h2><div class="field"><span>Raumname</span><input id="roomName" maxlength="60"></div>
 <div class="room-preset-section"><div class="room-preset-head"><strong>Hintergrundraum auswählen</strong><small>Oder eigenes Foto verwenden</small></div><div class="room-preset-grid" id="roomPresetGrid">
 <button type="button" class="room-preset-card" data-preset="livingroom"><span>🛋️</span><strong>Wohnzimmer</strong></button>
@@ -86,86 +150,428 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
 </div>
 
 <script>
+'use strict';
 const DB='MemoryRoomsDB', ROOMS='rooms', MARKERS='markers', DBV=3;
-let db,currentRoom=null,currentMarkers=[],editMarkerId=null,editItems=[],markerPhoto=null,roomPhoto=null;
-let queue=[],qIndex=0,known=0,unknown=0,walkMode=false,walkMarkers=[],walkIndex=0,themeMode=false,pendingTheme=null;
+const INTERVALS=[0,1,3,7,14,30,60], MAX_BOX=6, MASTERED_BOX=3, SESSION_MAX=30, DAY=864e5, BACKUP_DAYS=14;
+let db,currentRoom=null,currentRoomId=null,currentMarkers=[],editMarkerId=null,editItems=[],markerPhoto=null,editingRoom=null,roomPhoto=null,arrange=false,selectedPreset='livingroom';
+let queue=[],qIndex=0,known=0,unknown=0,sessionLabel='';
+let recallList=[],recallIdx=0,recallScore={all:0,part:0,none:0};
 
-const $=id=>document.getElementById(id);
-function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+const $=sel=>document.getElementById(sel);
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function itemTemplate(o={}){return {id:o.id||id(),title:o.title||'',question:o.question||'',answer:o.answer||'',hint:o.hint||'',photo:o.photo||null,showInRoom:!!o.showInRoom,useInQuiz:o.useInQuiz!==false,wrongAnswers:Array.isArray(o.wrongAnswers)?o.wrongAnswers.slice(0,3):['','',''],stats:Object.assign({attempts:0,correct:0,incorrect:0,mastery:0,lastReviewed:null},o.stats||{})}}
-function markerNorm(m){m=Object.assign({},m);m.items=Array.isArray(m.items)?m.items.map(itemTemplate):[];if(!m.stats)m.stats={timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null};return m}
-function openDB(){return new Promise((res,rej)=>{if(db)return res(db);let r=indexedDB.open(DB,DBV);r.onupgradeneeded=e=>{let d=e.target.result;if(!d.objectStoreNames.contains(ROOMS)){let s=d.createObjectStore(ROOMS,{keyPath:'id'});s.createIndex('name','name')}if(!d.objectStoreNames.contains(MARKERS)){let s=d.createObjectStore(MARKERS,{keyPath:'id'});s.createIndex('roomId','roomId')}};r.onsuccess=e=>{db=e.target.result;res(db)};r.onerror=()=>rej(r.error)})}
-function all(store){return new Promise((res,rej)=>{let r=db.transaction(store).objectStore(store).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
-function put(store,obj){return new Promise((res,rej)=>{let r=db.transaction(store,'readwrite').objectStore(store).put(obj);r.onsuccess=()=>res(obj);r.onerror=()=>rej(r.error)})}
-function del(store,key){return new Promise((res,rej)=>{let r=db.transaction(store,'readwrite').objectStore(store).delete(key);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function dayKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
+/* ---------- Datenmodell ---------- */
+function defStats(){return {attempts:0,correct:0,incorrect:0,mastery:0,box:0,due:null,lastReviewed:null}}
+function itemTemplate(o={}){
+  const raw=o.stats||{};const s=Object.assign(defStats(),raw);
+  if(!('box' in raw))s.box=Math.min(raw.mastery||0,2);
+  s.box=clamp(Number(s.box)||0,0,MAX_BOX);s.mastery=s.box;
+  return {id:o.id||uid(),title:o.title||'',question:o.question||'',answer:o.answer||'',hint:o.hint||'',photo:o.photo||null,showInRoom:!!o.showInRoom,useInQuiz:o.useInQuiz!==false,stats:s}
+}
+function markerNorm(m){m=Object.assign({},m);m.items=Array.isArray(m.items)?m.items.map(itemTemplate):[];m.stats=Object.assign({timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null,recallTotal:0,recallAll:0},m.stats||{});return m}
+function learnable(it){return !!(it.answer&&(it.question||it.title)&&it.useInQuiz!==false)}
+function isDue(it,now=Date.now()){const d=it.stats&&it.stats.due;return !d||new Date(d).getTime()<=now}
+function byOrder(a,b){return (a.routeOrder||999)-(b.routeOrder||999)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- Wiederholungsplan (Leitner) ---------- */
+function schedule(stats,r){
+  let box=stats.box||0,days;
+  if(r===0){box=0;days=0}
+  else if(r===1){days=box===0?0:Math.max(1,Math.round(INTERVALS[box]*.5))}
+  else if(r===2){box=Math.min(MAX_BOX,box+1);days=INTERVALS[box]}
+  else{box=Math.min(MAX_BOX,box+2);days=Math.round(INTERVALS[box]*1.3)}
+  return {box,days}
+}
+function dueAt(days){if(days<=0)return new Date().toISOString();const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+days);return d.toISOString()}
+function fmtDays(d){return d<=0?'gleich nochmal':d===1?'in 1 Tag':d<30?`in ${d} Tagen`:`in ${Math.round(d/30)} Mon.`}
+function norm(s){return String(s||'').toLocaleLowerCase('de-DE').replace(/[^a-z0-9äöüß]/gi,'')}
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){let c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+
+/* ---------- Datenbank ---------- */
+function openDB(){return new Promise((res,rej)=>{if(db)return res(db);const r=indexedDB.open(DB,DBV);r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(ROOMS)){const s=d.createObjectStore(ROOMS,{keyPath:'id'});s.createIndex('name','name')}if(!d.objectStoreNames.contains(MARKERS)){const s=d.createObjectStore(MARKERS,{keyPath:'id'});s.createIndex('roomId','roomId')}};r.onsuccess=e=>{db=e.target.result;res(db)};r.onerror=()=>rej(r.error)})}
+function all(store){return new Promise((res,rej)=>{const r=db.transaction(store).objectStore(store).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
+function getOne(store,key){return new Promise((res,rej)=>{const r=db.transaction(store).objectStore(store).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function put(store,obj){return new Promise((res,rej)=>{const r=db.transaction(store,'readwrite').objectStore(store).put(obj);r.onsuccess=()=>res(obj);r.onerror=()=>rej(r.error)})}
+function del(store,key){return new Promise((res,rej)=>{const r=db.transaction(store,'readwrite').objectStore(store).delete(key);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
 async function rooms(){return all(ROOMS)}
-async function markers(roomId){return (await all(MARKERS)).filter(m=>m.roomId===roomId).map(markerNorm)}
+async function markers(roomId){let list;try{list=await new Promise((res,rej)=>{const r=db.transaction(MARKERS).objectStore(MARKERS).index('roomId').getAll(roomId);r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}catch(e){list=(await all(MARKERS)).filter(m=>m.roomId===roomId)}return list.map(markerNorm)}
+async function getMarker(mid){const m=await getOne(MARKERS,mid);return m?markerNorm(m):null}
 async function saveMarker(m){return put(MARKERS,markerNorm(m))}
 async function saveRoom(r){return put(ROOMS,r)}
-function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(v).classList.add('active');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v))}
-function photoData(file,max=1200,q=.78){return new Promise((res,rej)=>{if(!file)return res(null);let rd=new FileReader();rd.onload=()=>{let im=new Image();im.onload=()=>{let w=im.width,h=im.height;if(w>max){h*=max/w;w=max}let c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=rd.result};rd.onerror=rej;rd.readAsDataURL(file)})}
 
-async function renderRooms(){let rs=await rooms();$('roomList').innerHTML='';for(let r of rs){let ms=await markers(r.id),n=ms.reduce((a,m)=>a+m.items.length,0),done=ms.reduce((a,m)=>a+m.items.filter(i=>i.stats?.mastery>=2).length,0);let c=document.createElement('div');c.className='room-card';c.innerHTML=(r.photo||r.roomPreset)?`<img class="room-card-photo" src="${r.photo||presetImage(r.roomPreset||'livingroom')}">`:`<div class="room-card-icon">${r.icon||'🏠'}</div>`;c.innerHTML+=`<div class="room-info"><h2>${esc(r.name)}</h2><div class="meta">${ms.length} Merkpunkte · ${n} Lernpunkte${n?` · ${Math.round(done/n*100)} % gelernt`:''}</div></div><button class="room-menu">⋯</button>`;c.onclick=e=>{if(e.target.closest('.room-menu'))openRoomEditor(r);else openRoom(r.id)};c.querySelector('.room-menu').onclick=e=>{e.stopPropagation();openRoomEditor(r)};$('roomList').appendChild(c)}}
+/* ---------- Bilder ---------- */
+function svgData(emoji,c0,c1){const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="${c0}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/><rect x="85" y="145" width="1030" height="535" rx="30" fill="#fff" fill-opacity=".24" stroke="#4a3727" stroke-opacity=".22" stroke-width="5"/><rect x="125" y="185" width="250" height="160" rx="18" fill="#fff" fill-opacity=".34"/><rect x="405" y="560" width="390" height="70" rx="22" fill="#5c4635" fill-opacity=".32"/><text x="600" y="465" text-anchor="middle" font-size="190">${emoji}</text></svg>`;return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
+window.FB=svgData('🛋️','#efe3d2','#9a7a5a');
+function presetImage(p){if(p==='livingroom')return 'room-livingroom.jpg';const cfg={kitchen:['#f4eadf','#b27b52','🍳'],bedroom:['#ddd7e2','#80677d','🛏️'],office:['#dfe7e6','#61736f','💻'],workshop:['#d7c7b5','#604c3c','🔨'],garden:['#c5e0ea','#4d814d','🌿']}[p]||['#e8ded2','#8b7763','🏠'];return svgData(cfg[2],cfg[0],cfg[1])}
+function roomImage(r){return r.photo||presetImage(r.roomPreset||'livingroom')}
+function photoData(file,max=1200,q=.78){return new Promise((res,rej)=>{if(!file)return res(null);const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{let w=im.width,h=im.height;if(w>max){h*=max/w;w=max}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=rd.result};rd.onerror=rej;rd.readAsDataURL(file)})}
 
-async function ensureDemo(){let rs=await rooms();if(rs.length)return;let r={id:id(),name:'Wohnzimmer',icon:'🛋️',photo:'room-livingroom.jpg',roomPreset:'livingroom',createdAt:new Date().toISOString()};await saveRoom(r);for(let [i,[t,x,y]] of [['Tür',12,82],['Tisch',42,55],['Sofa',78,68],['Fenster',50,18],['Regal',15,42],['Bild',82,28],['Schrank',62,72]].entries())await saveMarker({id:id(),roomId:r.id,title:t,description:'',x,y,routeOrder:i+1,items:[],stats:{timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null}})}
+/* ---------- Navigation ---------- */
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(v).classList.add('active');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(v==='settings')renderSettings();window.scrollTo(0,0)}
+function openSheet(title,buttons,desc){$('sheetTitle').textContent=title;$('sheetDesc').textContent=desc||'';$('sheetDesc').classList.toggle('hidden',!desc);const body=$('sheetBody');body.innerHTML='';buttons.forEach(b=>{const el=document.createElement('button');el.className='btn '+(b.cls||'btn-secondary');el.textContent=b.label;el.onclick=()=>{closeSheet();b.fn&&b.fn()};body.appendChild(el)});const c=document.createElement('button');c.className='btn btn-ghost';c.textContent='Abbrechen';c.onclick=closeSheet;body.appendChild(c);$('sheetOverlay').classList.add('active')}
+function closeSheet(){$('sheetOverlay').classList.remove('active')}
 
-function visual(emoji){let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420"><rect width="600" height="420" rx="40" fill="#f4ecdf"/><text x="300" y="255" text-anchor="middle" font-size="155">${emoji}</text></svg>`;return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
+/* ---------- Räume ---------- */
+async function renderRooms(){
+  const rs=await rooms();const allM=(await all(MARKERS)).map(markerNorm);const byRoom={};allM.forEach(m=>(byRoom[m.roomId]=byRoom[m.roomId]||[]).push(m));
+  const list=$('roomList');list.innerHTML='';
+  for(const r of rs){
+    const ms=byRoom[r.id]||[];const its=ms.flatMap(m=>m.items.filter(learnable));const n=its.length,done=its.filter(i=>i.stats.box>=MASTERED_BOX).length,due=its.filter(i=>i.stats.attempts>0&&isDue(i)).length;
+    const c=document.createElement('div');c.className='room-card';
+    const thumb=(r.photo||r.roomPreset)?`<img class="room-card-photo" src="${esc(roomImage(r))}" alt="" onerror="this.onerror=null;this.src=window.FB">`:`<div class="room-card-icon">${esc(r.icon||'🏠')}</div>`;
+    c.innerHTML=thumb+`<div class="room-info"><h2>${esc(r.name)}</h2><div class="meta">${ms.length} Merkpunkte · ${n} Lernpunkte${n?` · ${Math.round(done/n*100)} % beherrscht`:''}${due?` · ${due} fällig`:''}</div></div><button class="room-menu" aria-label="Raum bearbeiten">⋯</button>`;
+    c.onclick=e=>{if(e.target.closest('.room-menu'))openRoomEditor(r);else openRoom(r.id)};
+    list.appendChild(c);
+  }
+  const dueItems=allM.flatMap(m=>m.items.filter(learnable).filter(i=>isDue(i)));
+  const dueN=dueItems.length,reviewN=dueItems.filter(i=>i.stats.attempts>0).length;
+  const box=$('dueBox');
+  if(dueN){box.innerHTML=`<div class="panel due-card"><div><strong>📅 Heute dran: ${dueN} Lernpunkt${dueN===1?'':'e'}</strong><p>${reviewN} Wiederholung${reviewN===1?'':'en'}, ${dueN-reviewN} neu · kurze Runde, großer Effekt</p></div><button class="btn btn-warn" id="dueAllBtn">Üben</button></div>`;$('dueAllBtn').onclick=startDueAll}else box.innerHTML='';
+  const total=allM.reduce((a,m)=>a+m.items.length,0);const last=LS.get('mr_backup',null);
+  const old=!last||(Date.now()-last)>BACKUP_DAYS*DAY;
+  if(total&&old){$('backupBox').innerHTML=`<div class="backup-note"><span>💾 ${last?'Letztes Backup vor '+Math.floor((Date.now()-last)/DAY)+' Tagen.':'Noch kein Backup gemacht.'}</span><button id="goBackup">Sichern</button></div>`;$('goBackup').onclick=()=>show('settings')}else $('backupBox').innerHTML='';
+}
+async function ensureDemo(){
+  const rs=await rooms();if(rs.length)return;
+  const r={id:uid(),name:'Wohnzimmer',icon:'🛋️',photo:'room-livingroom.jpg',roomPreset:'livingroom',createdAt:new Date().toISOString()};await saveRoom(r);
+  const spots=[['Tür',12,82],['Tisch',42,55],['Sofa',78,68],['Fenster',50,18],['Regal',15,42],['Bild',82,28],['Schrank',62,72]];
+  for(let i=0;i<spots.length;i++){const [t,x,y]=spots[i];await saveMarker({id:uid(),roomId:r.id,title:t,description:'',x,y,routeOrder:i+1,items:[]})}
+}
+async function createTheme(){let name=prompt('Wie soll dein Themenraum heißen?','Mein Themenraum');if(name===null)return;name=name.trim()||'Mein Themenraum';const r={id:uid(),name:'🎯 '+name,icon:'🎯',type:'theme',photo:'room-livingroom.jpg',roomPreset:'livingroom',createdAt:new Date().toISOString()};await saveRoom(r);await renderRooms();openRoom(r.id)}
 
-async function createTheme(){let name=prompt('Wie soll dein Themenraum heißen?','Mein Themenraum');if(name===null)return;name=name.trim();if(!name)name='Mein Themenraum';let r={id:id(),name:'🎯 '+name,icon:'🎯',type:'theme',photo:'room-livingroom.jpg',roomPreset:'livingroom',createdAt:new Date().toISOString()};await saveRoom(r);await renderRooms();openRoom(r.id)}
+async function openRoom(rid){
+  const r=(await rooms()).find(x=>x.id===rid);if(!r)return;
+  currentRoom=r;currentRoomId=rid;arrange=false;updateArrangeUI();
+  currentMarkers=await markers(rid);currentMarkers.sort(byOrder);
+  $('roomTitle').textContent=r.name;$('roomSub').textContent=r.type==='theme'?'Visueller Gedächtnisweg':'Dein Gedächtnisraum';
+  const bg=$('roomBg');bg.onerror=()=>{bg.onerror=null;bg.src=window.FB};bg.src=roomImage(r);
+  show('room');renderMarkers();
+}
+function updateArrangeUI(){$('arrangeBtn').textContent=arrange?'✅ Fertig':'📍 Anordnen';$('arrangeHint').classList.toggle('hidden',!arrange)}
+function renderMarkers(){
+  const host=$('markers');host.innerHTML='';
+  currentMarkers.forEach((m,idx)=>{
+    const e=document.createElement('button');e.className='marker';e.style.left=m.x+'%';e.style.top=m.y+'%';
+    const dueN=m.items.filter(i=>learnable(i)&&i.stats.attempts>0&&isDue(i)).length;
+    e.innerHTML=(m.photo?`<img src="${esc(m.photo)}" alt=""><span>${esc(m.title)}</span>`:`<span class="num">${idx+1}</span><span>${esc(m.title||'Merkpunkt')}</span>`)+(m.items.length?`<span class="count">${m.items.length}</span>`:'')+(dueN?`<span class="dueDot">${dueN}</span>`:'');
+    if(arrange)enableDrag(e,m);else e.onclick=()=>openMarkerSheet(m);
+    host.appendChild(e);
+    m.items.forEach((it,j)=>{
+      if(!it.photo||!it.showInRoom)return;
+      const t=document.createElement('button');t.className='thought';
+      t.style.left=clamp(m.x+[-8,8,0,10,-10][j%5],5,95)+'%';t.style.top=clamp(m.y+[-10,-10,11,8,8][j%5],5,95)+'%';
+      t.innerHTML=`<img src="${esc(it.photo)}" alt="">`;t.onclick=ev=>{ev.stopPropagation();if(!arrange)openMarkerSheet(m)};host.appendChild(t);
+    });
+  });
+}
+function enableDrag(e,m){
+  e.classList.add('arrange');let sx=0,sy=0,moved=false,dragging=false;
+  e.addEventListener('pointerdown',ev=>{ev.preventDefault();dragging=true;moved=false;sx=ev.clientX;sy=ev.clientY;try{e.setPointerCapture(ev.pointerId)}catch(_){}});
+  e.addEventListener('pointermove',ev=>{if(!dragging)return;if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>6)moved=true;if(!moved)return;const r=$('roomWrap').getBoundingClientRect();m.x=Math.round(clamp((ev.clientX-r.left)/r.width*100,3,97)*10)/10;m.y=Math.round(clamp((ev.clientY-r.top)/r.height*100,3,97)*10)/10;e.style.left=m.x+'%';e.style.top=m.y+'%'});
+  e.addEventListener('pointerup',async ev=>{if(!dragging)return;dragging=false;try{e.releasePointerCapture(ev.pointerId)}catch(_){}if(moved){await saveMarker(m);renderMarkers()}else openMarkerSheet(m)});
+  e.addEventListener('pointercancel',()=>{dragging=false});
+}
+function openMarkerSheet(m){
+  const n=m.items.filter(learnable).length;const btns=[];
+  if(n)btns.push({label:'▶ Lernen',cls:'btn-primary',fn:()=>startMarker(m)});
+  btns.push({label:'✏️ Bearbeiten',fn:()=>openMarkerEditor(m)});
+  openSheet(m.title||'Merkpunkt',btns,`${n} Lernpunkt${n===1?'':'e'}`);
+}
 
-function presetImage(p){if(p==='livingroom')return 'room-livingroom.jpg';const cfg={kitchen:['#f4eadf','#b27b52','🍳'],bedroom:['#ddd7e2','#80677d','🛏️'],office:['#dfe7e6','#61736f','💻'],workshop:['#d7c7b5','#604c3c','🔨'],garden:['#c5e0ea','#4d814d','🌿']}[p]||['#e8ded2','#8b7763','🏠'];const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="${cfg[0]}"/><stop offset="1" stop-color="${cfg[1]}"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/><rect x="85" y="145" width="1030" height="535" rx="30" fill="#fff" fill-opacity=".24" stroke="#4a3727" stroke-opacity=".22" stroke-width="5"/><rect x="125" y="185" width="250" height="160" rx="18" fill="#fff" fill-opacity=".34"/><rect x="405" y="560" width="390" height="70" rx="22" fill="#5c4635" fill-opacity=".32"/><text x="600" y="465" text-anchor="middle" font-size="190">${cfg[2]}</text></svg>`;return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
+/* ---------- Merkpunkt-Editor ---------- */
+function openMarkerEditor(m){
+  editMarkerId=m?.id||null;editItems=(m?.items||[]).map(itemTemplate);markerPhoto=m?.photo||null;
+  $('markerModalTitle').textContent=m?'Merkpunkt bearbeiten':'Neuer Merkpunkt';
+  $('markerTitle').value=m?.title||'';$('markerDesc').value=m?.description||'';$('markerFile').value='';
+  $('markerOrder').value=m?(m.routeOrder||currentMarkers.indexOf(m)+1):currentMarkers.length+1;
+  $('markerPhotoRemove').classList.toggle('hidden',!markerPhoto);
+  $('deleteMarker').classList.toggle('hidden',!m);$('markerOverlay').classList.add('active');renderItems();
+}
+function renderItems(){
+  const host=$('items');host.innerHTML='';if(!editItems.length)host.innerHTML='<p class="muted">Noch keine Lernpunkte.</p>';
+  editItems.forEach((it,i)=>{
+    const d=document.createElement('div');d.className='item-card';
+    d.innerHTML=`<div class="item-head"><strong>${esc(it.title||it.question||'Lernpunkt')}</strong><button class="item-delete" aria-label="Lernpunkt löschen">✕</button></div>
+    <div class="field"><span>Titel (optional)</span><input class="it-title" value="${esc(it.title)}"></div>
+    <div class="field"><span>Frage (optional)</span><input class="it-question" value="${esc(it.question)}"></div>
+    <div class="field"><span>Antwort / Lösung</span><textarea class="it-answer">${esc(it.answer)}</textarea></div>
+    <div class="field"><span>Bild / Eselsbrücke an diesem Ort</span><input class="it-hint" value="${esc(it.hint)}" placeholder="z. B. Ein riesiger Frosch quakt dir ins Ohr"></div>
+    <div class="field"><span>Foto als Gedankenstütze</span><input class="it-file" type="file" accept="image/*"></div>
+    ${it.photo?`<img class="item-thumb" src="${esc(it.photo)}" alt=""><label class="check"><input type="checkbox" class="it-show" ${it.showInRoom?'checked':''}> Foto neben dem Merkpunkt im Raum zeigen</label><button class="link-btn it-rm">Foto entfernen</button>`:''}`;
+    d.querySelector('.item-delete').onclick=()=>{editItems.splice(i,1);renderItems()};
+    d.querySelector('.it-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;editItems[i].photo=await photoData(f,800,.7);renderItems()};
+    ['title','question','answer','hint'].forEach(k=>d.querySelector('.it-'+k).oninput=e=>{editItems[i][k]=e.target.value});
+    const sh=d.querySelector('.it-show');if(sh)sh.onchange=e=>{editItems[i].showInRoom=e.target.checked};
+    const rm=d.querySelector('.it-rm');if(rm)rm.onclick=()=>{editItems[i].photo=null;editItems[i].showInRoom=false;renderItems()};
+    host.appendChild(d);
+  });
+}
+async function saveMarkerEditor(){
+  const title=$('markerTitle').value.trim();if(!title){alert('Bitte einen Titel eingeben.');return}
+  for(const it of editItems){if(!it.title&&!it.question){alert('Jeder Lernpunkt braucht Titel ODER Frage.');return}if(!it.answer){alert('Jeder Lernpunkt braucht eine Antwort.');return}}
+  let m=editMarkerId?currentMarkers.find(x=>x.id===editMarkerId):null;
+  if(!m){const n=currentMarkers.length;m={id:uid(),roomId:currentRoomId,x:20+(n*13)%60,y:25+(n*17)%50,stats:{}}}
+  m.title=title;m.description=$('markerDesc').value.trim();m.items=editItems;m.photo=markerPhoto||null;
+  const others=currentMarkers.filter(x=>x.id!==m.id).sort(byOrder);
+  let pos=parseInt($('markerOrder').value,10);if(isNaN(pos))pos=others.length+1;pos=clamp(pos,1,others.length+1);
+  others.splice(pos-1,0,m);
+  for(let i=0;i<others.length;i++){const x=others[i];if(x===m||x.routeOrder!==i+1){x.routeOrder=i+1;await saveMarker(x)}}
+  $('markerOverlay').classList.remove('active');currentMarkers=await markers(currentRoomId);currentMarkers.sort(byOrder);renderMarkers();
+}
 
-async function openRoom(rid){currentRoom=(await rooms()).find(r=>r.id===rid);if(!currentRoom)return;currentRoomId=rid;currentMarkers=await markers(rid);currentMarkers.sort((a,b)=>(a.routeOrder||999)-(b.routeOrder||999));$('roomTitle').textContent=currentRoom.name;$('roomSub').textContent=currentRoom.type==='theme'?'Visueller Gedächtnisweg':'Dein Gedächtnisraum';$('roomBg').src=currentRoom.photo||presetImage(currentRoom.roomPreset||'livingroom');show('room');renderMarkers()}
-let currentRoomId=null;
-function renderMarkers(){$('markers').innerHTML='';currentMarkers.forEach((m,idx)=>{let e=document.createElement('button');e.className='marker';e.style.left=m.x+'%';e.style.top=m.y+'%';e.innerHTML=m.photo?`<img src="${m.photo}"><span>${esc(m.title)}</span>`:`<span class="num">${idx+1}</span><span>${esc(m.title||'Merkpunkt')}</span>`;if(m.items.length)e.innerHTML+=`<span class="count">${m.items.length}</span>`;e.onclick=()=>openMarkerMenu(m);$('markers').appendChild(e);(m.items||[]).forEach((it,j)=>{if(!it.photo||!it.showInRoom)return;let t=document.createElement('button');t.className='thought';t.style.left=Math.max(5,Math.min(95,m.x+[-8,8,0,10,-10][j%5]))+'%';t.style.top=Math.max(5,Math.min(95,m.y+[-10,-10,11,8,8][j%5]))+'%';t.innerHTML=`<img src="${it.photo}">`;t.onclick=e=>{e.stopPropagation();openMarkerMenu(m)};$('markers').appendChild(t)})})}
+/* ---------- Lernsitzung ---------- */
+function mkQ(it,m,roomName,stop,stops){return Object.assign({},it,{_markerId:m.id,_markerTitle:m.title,_markerPhoto:m.photo,_room:roomName,_stop:stop,_stops:stops,_again:0})}
+function startSession(list,label){
+  if(!list.length)return false;
+  queue=list;qIndex=0;known=0;unknown=0;sessionLabel=label;
+  $('learnDone').classList.add('hidden');$('learnMain').classList.remove('hidden');
+  showLearnItem();$('learnOverlay').classList.add('active');return true;
+}
+function startMarker(m){
+  const items=m.items.filter(learnable);
+  if(!startSession(items.map(it=>mkQ(it,m,currentRoom?.name,1,1)),'Ort'))alert('Dieser Merkpunkt hat noch keine Lernpunkte.');
+}
+function startWalk(){
+  const ms=currentMarkers.filter(m=>m.items.some(learnable)).sort(byOrder);const list=[];
+  ms.forEach((m,i)=>m.items.filter(learnable).forEach(it=>list.push(mkQ(it,m,currentRoom?.name,i+1,ms.length))));
+  if(!startSession(list,'Rundgang'))alert('Es gibt noch keine Lernpunkte für einen Rundgang.');
+}
+function dueQueue(pairs){ // pairs: [{it,m,room}]
+  const due=pairs.filter(p=>learnable(p.it)&&isDue(p.it));
+  const rev=shuffle(due.filter(p=>p.it.stats.attempts>0)),neu=shuffle(due.filter(p=>!p.it.stats.attempts));
+  return rev.concat(neu).slice(0,SESSION_MAX).map(p=>mkQ(p.it,p.m,p.room,1,1));
+}
+function startDueRoom(){
+  const pairs=[];currentMarkers.forEach(m=>m.items.forEach(it=>pairs.push({it,m,room:currentRoom?.name})));
+  if(!startSession(dueQueue(pairs),'Fällige üben'))alert('Hier ist gerade nichts fällig 🎉 Komm später wieder oder mach einen Rundgang.');
+}
+async function startDueAll(){
+  const rs=await rooms(),names={};rs.forEach(r=>names[r.id]=r.name);
+  const pairs=[];(await all(MARKERS)).map(markerNorm).forEach(m=>m.items.forEach(it=>pairs.push({it,m,room:names[m.roomId]})));
+  if(!startSession(dueQueue(pairs),'Heute fällig'))alert('Heute ist nichts mehr fällig 🎉');
+}
+function showLearnItem(){
+  const it=queue[qIndex];
+  $('learnAnchor').textContent=(sessionLabel==='Heute fällig'&&it._room?it._room+' › ':'')+(it._markerTitle||'Merkpunkt');
+  if(it._markerPhoto){$('learnPhoto').src=it._markerPhoto;$('learnPhoto').classList.remove('hidden')}else $('learnPhoto').classList.add('hidden');
+  $('learnProgress').textContent=(sessionLabel==='Rundgang'&&it._stops>1?`Ort ${it._stop} von ${it._stops} · `:'')+`${qIndex+1} von ${queue.length}`;
+  $('learnPrompt').textContent=it.question?'FRAGE – JETZT AUS DEM GEDÄCHTNIS':'LERNPUNKT – JETZT AUS DEM GEDÄCHTNIS';
+  $('learnQuestion').textContent=it.question||it.title;
+  $('solution').classList.add('hidden');$('phaseAnswer').classList.remove('hidden');
+  const typed=LS.get('mr_typed',true);$('typeBox').classList.toggle('hidden',!typed);$('thinkBox').classList.toggle('hidden',typed);
+  $('typed').value='';if(typed)setTimeout(()=>$('typed').focus(),80);
+}
+function reveal(userText,mode){
+  const it=queue[qIndex];
+  $('phaseAnswer').classList.add('hidden');$('solution').classList.remove('hidden');
+  $('solutionText').textContent=it.answer;
+  $('solutionHint').textContent=it.hint?'💡 '+it.hint:'';$('solutionHint').classList.toggle('hidden',!it.hint);
+  $('solutionPhotoWrap').innerHTML=it.photo?`<img style="width:100%;max-height:260px;object-fit:contain;border-radius:16px;margin-top:10px" src="${esc(it.photo)}" alt="">`:'';
+  let fb='',cls='neutral',suggest=null;
+  if(mode==='unknown'){fb='Kein Problem. Präge dir die Lösung jetzt bewusst ein und stell dir das Bild an diesem Ort vor.';suggest=0}
+  else if(mode==='typed'){
+    const v=(userText||'').trim(),a=norm(it.answer),u=norm(v);
+    if(u&&u===a){fb='✅ Richtig!';cls='ok';suggest=2}
+    else if(u&&a.length>=5&&a.length<=40&&lev(u,a)<=Math.max(1,Math.floor(a.length*.1))){fb='🟡 Fast richtig, vermutlich ein Tippfehler. Vergleiche mit der Lösung.';cls='ok';suggest=2}
+    else if(a.length>40){fb='Vergleiche deine Antwort mit der Lösung und bewerte ehrlich.'}
+    else if(!u){fb='Du hast nichts eingegeben.';cls='bad';suggest=0}
+    else{fb='❌ Noch nicht richtig. Vergleiche mit der Lösung.';cls='bad';suggest=0}
+  }
+  $('yourAnswer').textContent=mode==='typed'&&userText&&userText.trim()?'Deine Antwort: '+userText.trim():'';$('yourAnswer').classList.toggle('hidden',!(mode==='typed'&&userText&&userText.trim()));
+  $('feedback').textContent=fb;$('feedback').className='feedback '+cls;$('feedback').classList.toggle('hidden',!fb);
+  for(let r=0;r<4;r++){const s=schedule(it.stats,r);$('rv'+r).textContent=fmtDays(s.days)}
+  document.querySelectorAll('.rate-grid .btn').forEach(b=>b.classList.toggle('suggest',suggest!==null&&Number(b.dataset.rate)===suggest));
+}
+async function rate(r){
+  const it=queue[qIndex];const raw=await getMarker(it._markerId);let fresh=it.stats;
+  if(raw){
+    const i=raw.items.findIndex(x=>x.id===it.id);
+    if(i>=0){
+      const st=raw.items[i].stats,s=schedule(st,r),now=new Date().toISOString();
+      st.attempts++;st.lastReviewed=now;if(r===0)st.incorrect++;else st.correct++;
+      st.box=s.box;st.mastery=s.box;st.due=s.days===0?now:dueAt(s.days);fresh=Object.assign({},st);
+    }
+    raw.stats.timesAsked++;if(r===0)raw.stats.timesUnknown++;else raw.stats.timesKnown++;raw.stats.lastAsked=new Date().toISOString();
+    await saveMarker(raw);
+  }
+  const days=LS.get('mr_days',[]);const k=dayKey();if(!days.includes(k)){days.push(k);LS.set('mr_days',days.slice(-400))}
+  if(r===0)unknown++;else known++;
+  if((r===0||(r===1&&(fresh.box||0)===0))&&it._again<2)queue.push(Object.assign({},it,{stats:fresh,_again:it._again+1}));
+  nextLearn();
+}
+function nextLearn(){
+  qIndex++;if(qIndex<queue.length){showLearnItem();return}
+  $('learnMain').classList.add('hidden');$('learnDone').classList.remove('hidden');
+  $('doneTitle').textContent=sessionLabel==='Rundgang'?'Rundgang abgeschlossen':'Runde geschafft';
+  $('doneScore').textContent=`${known} sicher · ${unknown} nochmal${unknown?'. Genau diese Punkte kommen bald wieder.':''}`;
+}
+async function refreshAfter(){
+  if(currentRoomId){currentMarkers=await markers(currentRoomId);currentMarkers.sort(byOrder);if($('room').classList.contains('active'))renderMarkers()}
+  await renderRooms();if($('stats').classList.contains('active'))stats(statsScope);
+}
+function closeLearn(){$('learnOverlay').classList.remove('active');refreshAfter()}
 
-function openMarkerMenu(m){let has=m.items.length;if(confirm(`${m.title}\n\n${has} Lernpunkt${has===1?'':'e'}\n\nOK = Lernen\nAbbrechen = Bearbeiten`))startLearn(m,false);else openMarkerEditor(m)}
-function openMarkerEditor(m){editMarkerId=m?.id||null;editItems=(m?.items||[]).map(itemTemplate);markerPhoto=m?.photo||null;$('markerModalTitle').textContent=m?'Merkpunkt bearbeiten':'Neuer Merkpunkt';$('markerTitle').value=m?.title||'';$('markerDesc').value=m?.description||'';$('deleteMarker').classList.toggle('hidden',!m);$('markerOverlay').classList.add('active');renderItems()}
-function renderItems(){$('items').innerHTML='';if(!editItems.length)$('items').innerHTML='<p class="muted">Noch keine Lernpunkte.</p>';editItems.forEach((it,i)=>{let d=document.createElement('div');d.className='item-card';d.innerHTML=`<div class="item-head"><strong>${esc(it.title||it.question||'Lernpunkt')}</strong><button class="item-delete">✕</button></div><small>${esc(it.answer)}</small><div class="field"><span>Titel (optional)</span><input class="it-title" value="${esc(it.title)}"></div><div class="field"><span>Frage (optional)</span><input class="it-question" value="${esc(it.question)}"></div><div class="field"><span>Antwort / Lösung</span><textarea class="it-answer">${esc(it.answer)}</textarea></div><div class="field"><span>Gedankenstütze / Eselsbrücke</span><input class="it-hint" value="${esc(it.hint)}"></div><div class="field"><span>Foto als Gedankenstütze</span><input class="it-file" type="file" accept="image/*"></div>`;d.querySelector('.item-delete').onclick=()=>{editItems.splice(i,1);renderItems()};d.querySelector('.it-file').onchange=async e=>{editItems[i].photo=await photoData(e.target.files[0],800,.7)};['title','question','answer','hint'].forEach(k=>d.querySelector('.it-'+k).oninput=e=>editItems[i][k]=e.target.value);$('items').appendChild(d)})}
-async function saveMarkerEditor(){let title=$('markerTitle').value.trim();if(!title){alert('Bitte einen Titel eingeben.');return}for(let it of editItems){if(!it.title&&!it.question){alert('Jeder Lernpunkt braucht Titel ODER Frage.');return}if(!it.answer){alert('Jeder Lernpunkt braucht eine Antwort.');return}}let m=editMarkerId?currentMarkers.find(x=>x.id===editMarkerId):{id:id(),roomId:currentRoomId,x:50,y:50,routeOrder:currentMarkers.length+1,stats:{timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null}};m.title=title;m.description=$('markerDesc').value.trim();m.items=editItems;m.photo=markerPhoto||null;if(editMarkerId){await saveMarker(m)}else{await saveMarker(m)}$('markerOverlay').classList.remove('active');currentMarkers=await markers(currentRoomId);renderMarkers()}
-$('markerFile').onchange=async e=>{markerPhoto=await photoData(e.target.files[0],900,.75)}
-$('addItem').onclick=()=>{editItems.push(itemTemplate());renderItems()}
-$('saveMarker').onclick=saveMarkerEditor;$('cancelMarker').onclick=()=>$('markerOverlay').classList.remove('active');
-$('deleteMarker').onclick=async()=>{if(!editMarkerId||!confirm('Merkpunkt und Lernpunkte wirklich löschen?'))return;await del(MARKERS,editMarkerId);$('markerOverlay').classList.remove('active');currentMarkers=await markers(currentRoomId);renderMarkers()}
+/* ---------- Raum im Kopf ---------- */
+function recallSheet(){
+  if(!currentMarkers.some(m=>m.items.some(learnable))){alert('Zuerst Lernpunkte anlegen.');return}
+  openSheet('🧭 Raum im Kopf',[
+    {label:'Vorwärts (Route)',cls:'btn-primary',fn:()=>startRecall('fwd')},
+    {label:'Rückwärts',fn:()=>startRecall('rev')},
+    {label:'Zufällige Reihenfolge',fn:()=>startRecall('rnd')}
+  ],'Geh den Raum gedanklich ab und schreib auf, was du abgelegt hast. Erst danach siehst du die Lösung.');
+}
+function startRecall(dir){
+  let list=currentMarkers.filter(m=>m.items.some(learnable)).sort(byOrder);
+  if(dir==='rev')list=list.slice().reverse();else if(dir==='rnd')list=shuffle(list.slice());
+  recallList=list;recallIdx=0;recallScore={all:0,part:0,none:0};
+  $('rcMain').classList.remove('hidden');$('rcDone').classList.add('hidden');showRecall();$('recallOverlay').classList.add('active');
+}
+function showRecall(){
+  const m=recallList[recallIdx];
+  $('rcPos').textContent=`ORT ${recallIdx+1} VON ${recallList.length}`;$('rcTitle').textContent=m.title||'Merkpunkt';
+  if(m.photo){$('rcPhoto').src=m.photo;$('rcPhoto').classList.remove('hidden')}else $('rcPhoto').classList.add('hidden');
+  $('rcText').value='';$('rcAsk').classList.remove('hidden');$('rcSolution').classList.add('hidden');
+}
+function recallReveal(){
+  const m=recallList[recallIdx];
+  $('rcList').innerHTML=m.items.filter(learnable).map(it=>`<div class="item-card"><strong>${esc(it.title||it.question)}</strong><div style="white-space:pre-wrap">${esc(it.answer)}</div>${it.hint?`<small>💡 ${esc(it.hint)}</small>`:''}</div>`).join('');
+  $('rcAsk').classList.add('hidden');$('rcSolution').classList.remove('hidden');
+}
+async function recallRate(kind){
+  const m=recallList[recallIdx];const raw=await getMarker(m.id);
+  if(raw){
+    raw.stats.recallTotal=(raw.stats.recallTotal||0)+1;if(kind==='all')raw.stats.recallAll=(raw.stats.recallAll||0)+1;
+    if(kind!=='all'){const now=new Date().toISOString();raw.items.forEach(it=>{if(!learnable(it))return;if(kind==='none'){it.stats.box=Math.max(0,it.stats.box-1);it.stats.mastery=it.stats.box}it.stats.due=now})}
+    await saveMarker(raw);
+  }
+  const days=LS.get('mr_days',[]);const k=dayKey();if(!days.includes(k)){days.push(k);LS.set('mr_days',days.slice(-400))}
+  recallScore[kind]++;recallIdx++;
+  if(recallIdx<recallList.length){showRecall();return}
+  $('rcMain').classList.add('hidden');$('rcDone').classList.remove('hidden');
+  $('rcScore').textContent=`${recallScore.all} Orte komplett · ${recallScore.part} teilweise · ${recallScore.none} fast nichts${recallScore.part+recallScore.none?'. Die schwachen Orte kommen heute nochmal dran.':''}`;
+}
+function closeRecall(){$('recallOverlay').classList.remove('active');refreshAfter()}
 
-function startLearn(m,wrongOnly=false){let items=m.items.filter(it=>it.answer&&(it.question||it.title));if(wrongOnly)items=items.filter(it=>(it.stats?.incorrect||0)>0&&(it.stats?.mastery||0)<2);if(!items.length){alert('Dieser Merkpunkt hat noch keine Lernpunkte.');return}walkMode=false;themeMode=currentRoom?.type==='theme-german-states';walkMarkers=[];queue=items.map(it=>Object.assign({},it,{_markerId:m.id,_markerTitle:m.title,_markerPhoto:m.photo}));qIndex=0;known=0;unknown=0;showLearnItem();$('learnOverlay').classList.add('active')}
-function startWalk(){walkMarkers=currentMarkers.filter(m=>m.items?.length).sort((a,b)=>(a.routeOrder||999)-(b.routeOrder||999));if(!walkMarkers.length){alert('Es gibt noch keine Lernpunkte für einen Rundgang.');return}walkMode=true;themeMode=currentRoom?.type==='theme-german-states';walkIndex=0;known=0;unknown=0;loadWalkMarker();$('learnOverlay').classList.add('active')}
-function loadWalkMarker(){let m=walkMarkers[walkIndex];queue=m.items.filter(it=>it.answer&&(it.question||it.title)).map(it=>Object.assign({},it,{_markerId:m.id,_markerTitle:m.title,_markerPhoto:m.photo}));qIndex=0;showLearnItem()}
-function showLearnItem(){let it=queue[qIndex];$('learnAnchor').textContent=it._markerTitle||'Merkpunkt';if(it._markerPhoto){$('learnPhoto').src=it._markerPhoto;$('learnPhoto').classList.remove('hidden')}else $('learnPhoto').classList.add('hidden');$('learnProgress').textContent=walkMode?`Ort ${walkIndex+1} von ${walkMarkers.length} · Punkt ${qIndex+1} von ${queue.length}`:`${qIndex+1} von ${queue.length}`;$('learnPrompt').textContent=it.question?'FRAGE':'LERNPUNKT';$('learnQuestion').textContent=it.question||it.title;$('solutionText').textContent=it.answer;$('solution').classList.add('hidden');$('learnDone').classList.add('hidden');$('feedback').classList.add('hidden');$('themeNext').classList.add('hidden');$('knew').classList.toggle('hidden',themeMode);$('notKnew').classList.toggle('hidden',themeMode);$('normalLearn').classList.toggle('hidden',themeMode);$('themeLearn').classList.toggle('hidden',!themeMode);if(themeMode){$('themeAnswer').value='';setTimeout(()=>$('themeAnswer').focus(),80)}$('solutionHint').textContent=it.hint||'';$('solutionHint').classList.toggle('hidden',!it.hint);$('solutionPhotoWrap').innerHTML=it.photo?`<img style="width:100%;max-height:260px;object-fit:contain;border-radius:16px;margin-top:10px" src="${it.photo}">`:''}
-function showSolution(){if(themeMode)return;$('normalLearn').classList.add('hidden');$('solution').classList.remove('hidden')}
-function norm(s){return String(s||'').toLocaleLowerCase('de-DE').replace(/[^a-z0-9äöüß]/gi,'')}
-async function checkTheme(){let it=queue[qIndex],v=$('themeAnswer').value.trim();if(!v){alert('Bitte zuerst deine Antwort eingeben.');return}let ok=norm(v)===norm(it.answer);await score(ok);pendingTheme=ok;$('themeLearn').classList.add('hidden');$('solution').classList.remove('hidden');$('feedback').textContent=ok?'✅ Richtig! Deine Antwort stimmt.':'❌ Noch nicht richtig. Vergleiche jetzt mit der Lösung.';$('feedback').className='feedback '+(ok?'ok':'bad');$('themeNext').classList.remove('hidden')}
-async function score(ok){let it=queue[qIndex];it.stats=Object.assign({attempts:0,correct:0,incorrect:0,mastery:0,lastReviewed:null},it.stats||{});it.stats.attempts++;it.stats.lastReviewed=new Date().toISOString();ok?(it.stats.correct++,it.stats.mastery=Math.min(5,(it.stats.mastery||0)+1),known++):(it.stats.incorrect++,it.stats.mastery=Math.max(0,(it.stats.mastery||0)-1),unknown++);let m=currentMarkers.find(x=>x.id===it._markerId);if(m){let i=m.items.findIndex(x=>x.id===it.id);if(i>=0)m.items[i]=itemTemplate(it);m.stats=m.stats||{timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null};m.stats.timesAsked++;ok?m.stats.timesKnown++:m.stats.timesUnknown++;m.stats.lastAsked=new Date().toISOString();await saveMarker(m)}}
-$('knew').onclick=async()=>{await score(true);nextLearn()};$('notKnew').onclick=async()=>{await score(false);nextLearn()};$('themeNext').onclick=nextLearn;
-function nextLearn(){qIndex++;pendingTheme=null;if(qIndex<queue.length){showLearnItem();return}if(walkMode&&walkIndex<walkMarkers.length-1){walkIndex++;loadWalkMarker();return}$('solution').classList.add('hidden');$('themeLearn').classList.add('hidden');$('normalLearn').classList.add('hidden');$('learnDone').classList.remove('hidden');$('doneTitle').textContent=walkMode?'Rundgang abgeschlossen':'Lernpunkt abgeschlossen';$('doneScore').textContent=`${known} gewusst · ${unknown} nicht gewusst`}
-
-$('closeLearn').onclick=closeLearn;$('closeTheme').onclick=closeLearn;$('showSolution').onclick=showSolution;$('checkTheme').onclick=checkTheme;$('doneClose').onclick=closeLearn;
-function closeLearn(){$('learnOverlay').classList.remove('active');pendingTheme=null}
-$('walkBtn').onclick=startWalk;$('addMarker').onclick=()=>openMarkerEditor(null);$('backRooms').onclick=()=>{show('rooms');renderRooms()};
-
-let selectedPreset='livingroom';
+/* ---------- Raum bearbeiten ---------- */
 function updatePresetUI(){document.querySelectorAll('#roomPresetGrid [data-preset]').forEach(b=>b.classList.toggle('selected',b.dataset.preset===selectedPreset))}
-async function openRoomEditor(r){currentRoom=r;$('roomName').value=r.name||'';$('roomFile').value='';roomPhoto=r.photo||null;selectedPreset=r.roomPreset||'livingroom';updatePresetUI();$('roomOverlay').classList.add('active')}
-document.querySelectorAll('#roomPresetGrid [data-preset]').forEach(b=>b.onclick=()=>{selectedPreset=b.dataset.preset;roomPhoto=selectedPreset==='livingroom'?'room-livingroom.jpg':null;updatePresetUI()})
-$('roomFile').onchange=async e=>{if(!e.target.files[0])return;roomPhoto=await photoData(e.target.files[0],1400,.78);selectedPreset='custom';updatePresetUI()}
-$('saveRoom').onclick=async()=>{let n=$('roomName').value.trim();if(!n)return alert('Bitte einen Raumnamen eingeben.');currentRoom.name=n;currentRoom.roomPreset=selectedPreset;currentRoom.photo=selectedPreset==='custom'?roomPhoto:(selectedPreset==='livingroom'?'room-livingroom.jpg':null);await saveRoom(currentRoom);$('roomOverlay').classList.remove('active');await renderRooms();openRoom(currentRoom.id)}
-$('cancelRoom').onclick=()=>$('roomOverlay').classList.remove('active');
-$('deleteRoom').onclick=async()=>{let rs=await rooms();if(rs.length<=1)return alert('Der letzte Raum kann nicht gelöscht werden.');if(!confirm(`Raum „${currentRoom.name}“ wirklich löschen?`))return;for(let m of await markers(currentRoom.id))await del(MARKERS,m.id);await del(ROOMS,currentRoom.id);$('roomOverlay').classList.remove('active');show('rooms');renderRooms()}
+function openRoomEditor(r){
+  editingRoom=r;$('roomName').value=r.name||'';$('roomFile').value='';roomPhoto=r.photo||null;
+  selectedPreset=r.roomPreset||(r.photo&&r.photo!=='room-livingroom.jpg'?'custom':'livingroom');
+  updatePresetUI();$('deleteRoom').classList.toggle('hidden',!r.id);$('roomOverlay').classList.add('active');
+}
+async function saveRoomEditor(){
+  const n=$('roomName').value.trim();if(!n)return alert('Bitte einen Raumnamen eingeben.');
+  const r=editingRoom;if(!r.id)r.id=uid();
+  r.name=n;r.roomPreset=selectedPreset;r.photo=selectedPreset==='custom'?roomPhoto:(selectedPreset==='livingroom'?'room-livingroom.jpg':null);
+  await saveRoom(r);$('roomOverlay').classList.remove('active');await renderRooms();openRoom(r.id);
+}
+async function deleteRoomEditor(){
+  const rs=await rooms();const r=editingRoom;if(!r||!r.id)return;
+  if(rs.length<=1)return alert('Der letzte Raum kann nicht gelöscht werden.');
+  if(!confirm(`Raum „${r.name}“ wirklich löschen?`))return;
+  for(const m of await markers(r.id))await del(MARKERS,m.id);await del(ROOMS,r.id);
+  if(currentRoomId===r.id){currentRoom=null;currentRoomId=null;currentMarkers=[]}
+  $('roomOverlay').classList.remove('active');show('rooms');renderRooms();
+}
 
-async function stats(){let rs=await rooms(),ms=await all(MARKERS),items=ms.flatMap(m=>markerNorm(m).items),attempts=items.reduce((a,i)=>a+(i.stats?.attempts||0),0),correct=items.reduce((a,i)=>a+(i.stats?.correct||0),0),mastered=items.filter(i=>(i.stats?.mastery||0)>=2).length;let vals=[[rs.length,'Räume'],[ms.length,'Merkpunkte'],[items.length,'Lernpunkte'],[attempts,'Abfragen'],[correct,'Gewusst'],[mastered,'Beherrscht']];$('statsGrid').innerHTML=vals.map(v=>`<div class="stat"><strong>${v[0]}</strong><span>${v[1]}</span></div>`).join('')}
-$('roomStats').onclick=()=>{show('stats');stats()};
+/* ---------- Statistik ---------- */
+let statsScope=null;
+function streakDays(){const set=new Set(LS.get('mr_days',[]));let n=0;const d=new Date();if(!set.has(dayKey(d)))d.setDate(d.getDate()-1);while(set.has(dayKey(d))){n++;d.setDate(d.getDate()-1)}return n}
+async function stats(roomId){
+  statsScope=roomId||null;
+  const rs=await rooms(),names={};rs.forEach(r=>names[r.id]=r.name);
+  const ms=(await all(MARKERS)).map(markerNorm).filter(m=>!roomId||m.roomId===roomId);
+  const rows=[];ms.forEach(m=>m.items.filter(learnable).forEach(it=>rows.push({it,m})));
+  const items=rows.map(x=>x.it);
+  const attempts=items.reduce((a,i)=>a+i.stats.attempts,0),correct=items.reduce((a,i)=>a+i.stats.correct,0);
+  const neu=items.filter(i=>!i.stats.attempts).length,mastered=items.filter(i=>i.stats.box>=MASTERED_BOX).length;
+  const learning=items.filter(i=>i.stats.attempts>0&&i.stats.box<MASTERED_BOX).length,due=items.filter(i=>i.stats.attempts>0&&isDue(i)).length;
+  $('statsTitle').textContent=roomId?'📊 '+(names[roomId]||'Raum'):'📊 Lernfortschritt';
+  const vals=[[due,'Wiederholungen fällig'],[neu,'Neu'],[learning,'In Arbeit'],[mastered,'Beherrscht (7+ Tage Abstand)'],[items.length,'Lernpunkte'],[attempts,'Abfragen'],[attempts?Math.round(correct/attempts*100)+' %':'–','Trefferquote'],[streakDays(),'Tage in Folge geübt']];
+  $('statsGrid').innerHTML=vals.map(v=>`<div class="stat"><strong>${v[0]}</strong><span>${v[1]}</span></div>`).join('');
+  let extra='';
+  if(!roomId&&rs.length){extra+='<div class="sub">Räume</div>'+rs.map(r=>{const its=rows.filter(x=>x.m.roomId===r.id).map(x=>x.it),n=its.length,d=its.filter(i=>i.stats.box>=MASTERED_BOX).length,du=its.filter(i=>i.stats.attempts>0&&isDue(i)).length;return `<div class="stat-row"><strong>${esc(r.name)}</strong><br><small>${n} Lernpunkte · ${d} beherrscht${du?` · ${du} fällig`:''}</small><div class="bar"><i style="width:${n?Math.round(d/n*100):0}%"></i></div></div>`}).join('')}
+  const weak=rows.filter(x=>x.it.stats.attempts>0&&x.it.stats.incorrect>0).sort((a,b)=>b.it.stats.incorrect-a.it.stats.incorrect||a.it.stats.box-b.it.stats.box).slice(0,5);
+  if(weak.length)extra+='<div class="sub">Schwächste Lernpunkte</div>'+weak.map(x=>`<div class="stat-row"><strong>${esc(x.it.title||x.it.question)}</strong><br><small>${esc(x.m.title)}${roomId?'':' · '+esc(names[x.m.roomId]||'')} · ${x.it.stats.incorrect}× „Nochmal"</small></div>`).join('');
+  $('statsExtra').innerHTML=extra;
+}
 
+/* ---------- Einstellungen & Backup ---------- */
+async function renderSettings(){
+  $('optTyped').checked=LS.get('mr_typed',true);
+  const last=LS.get('mr_backup',null);$('backupInfo').textContent=last?'Letztes Backup: '+new Date(last).toLocaleDateString('de-DE'):'Noch kein Backup gemacht.';
+  let txt='Speicher: ';
+  try{if(navigator.storage&&navigator.storage.persisted){txt+=(await navigator.storage.persisted())?'dauerhaft gesichert ✅':'vom Browser löschbar. Am sichersten: zum Home-Bildschirm hinzufügen und regelmäßig sichern.'}else txt+='Status unbekannt.'}catch(e){txt+='Status unbekannt.'}
+  $('storageInfo').textContent=txt;
+}
+async function exportBackup(){
+  const data={app:'MemoryRooms',backupVersion:4,rooms:await rooms(),markers:(await all(MARKERS)).map(markerNorm),days:LS.get('mr_days',[]),exportedAt:new Date().toISOString()};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='memoryrooms-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();
+  LS.set('mr_backup',Date.now());renderSettings();
+}
+async function importBackup(file){
+  try{
+    const d=JSON.parse(await file.text());if(!Array.isArray(d.rooms)||!Array.isArray(d.markers))throw Error('Ungültiges Backup');
+    if(!confirm('Backup vollständig wiederherstellen? Die aktuellen Daten werden ersetzt.'))return;
+    const tx=db.transaction([ROOMS,MARKERS],'readwrite');tx.objectStore(ROOMS).clear();tx.objectStore(MARKERS).clear();
+    d.rooms.forEach(r=>tx.objectStore(ROOMS).put(r));d.markers.forEach(m=>tx.objectStore(MARKERS).put(markerNorm(m)));
+    tx.oncomplete=async()=>{if(Array.isArray(d.days))LS.set('mr_days',d.days);currentRoom=null;currentRoomId=null;currentMarkers=[];await ensureDemo();await renderRooms();show('rooms');alert('Backup wiederhergestellt.')};
+    tx.onerror=()=>alert('Backup konnte nicht importiert werden.');
+  }catch(err){alert('Backup konnte nicht importiert werden.')}
+}
+function clearAll(){
+  if(!confirm('Wirklich alle Daten löschen?'))return;if(!confirm('Letzte Sicherheitsabfrage: Daten unwiderruflich löschen?'))return;
+  const tx=db.transaction([ROOMS,MARKERS],'readwrite');tx.objectStore(ROOMS).clear();tx.objectStore(MARKERS).clear();
+  tx.oncomplete=async()=>{currentRoom=null;currentRoomId=null;currentMarkers=[];LS.set('mr_days',[]);await ensureDemo();await renderRooms();show('rooms')};
+}
+
+/* ---------- Ereignisse ---------- */
 $('newRoom').onclick=()=>openRoomEditor({id:null,name:'',photo:null,icon:'🏠',createdAt:new Date().toISOString()});
 $('themeRoom').onclick=createTheme;
+$('backRooms').onclick=()=>{show('rooms');renderRooms()};
+$('walkBtn').onclick=startWalk;$('dueRoomBtn').onclick=startDueRoom;$('recallBtn').onclick=recallSheet;
+$('addMarker').onclick=()=>{arrange=false;updateArrangeUI();renderMarkers();openMarkerEditor(null)};
+$('arrangeBtn').onclick=()=>{arrange=!arrange;updateArrangeUI();renderMarkers()};
+$('editRoom').onclick=()=>{if(currentRoom)openRoomEditor(currentRoom)};
+$('roomStats').onclick=()=>{show('stats');stats(currentRoomId)};
+$('saveMarker').onclick=saveMarkerEditor;$('cancelMarker').onclick=()=>$('markerOverlay').classList.remove('active');
+$('addItem').onclick=()=>{editItems.push(itemTemplate());renderItems()};
+$('markerFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;markerPhoto=await photoData(f,900,.75);$('markerPhotoRemove').classList.remove('hidden')};
+$('markerPhotoRemove').onclick=()=>{markerPhoto=null;$('markerFile').value='';$('markerPhotoRemove').classList.add('hidden')};
+$('deleteMarker').onclick=async()=>{if(!editMarkerId||!confirm('Merkpunkt und Lernpunkte wirklich löschen?'))return;await del(MARKERS,editMarkerId);$('markerOverlay').classList.remove('active');currentMarkers=await markers(currentRoomId);currentMarkers.sort(byOrder);renderMarkers()};
+$('checkTyped').onclick=()=>reveal($('typed').value,'typed');
+$('dontKnow').onclick=()=>reveal('','unknown');
+$('revealBtn').onclick=()=>reveal(null,'think');
+document.querySelectorAll('.rate-grid .btn').forEach(b=>b.onclick=()=>rate(Number(b.dataset.rate)));
+$('closeLearn').onclick=closeLearn;$('doneClose').onclick=closeLearn;
+$('rcReveal').onclick=recallReveal;$('rcCancel').onclick=closeRecall;$('rcClose').onclick=closeRecall;
+document.querySelectorAll('[data-rc]').forEach(b=>b.onclick=()=>recallRate(b.dataset.rc));
+document.querySelectorAll('#roomPresetGrid [data-preset]').forEach(b=>b.onclick=()=>{selectedPreset=b.dataset.preset;roomPhoto=selectedPreset==='livingroom'?'room-livingroom.jpg':null;updatePresetUI()});
+$('roomFile').onchange=async e=>{if(!e.target.files[0])return;roomPhoto=await photoData(e.target.files[0],1400,.78);selectedPreset='custom';updatePresetUI()};
+$('saveRoom').onclick=saveRoomEditor;$('cancelRoom').onclick=()=>$('roomOverlay').classList.remove('active');$('deleteRoom').onclick=deleteRoomEditor;
+$('export').onclick=exportBackup;$('clear').onclick=clearAll;
+$('import').onchange=async e=>{const f=e.target.files[0];if(f)await importBackup(f);e.target.value=''};
+$('optTyped').onchange=e=>LS.set('mr_typed',e.target.checked);
+document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{
+  const v=b.dataset.view;
+  if(v==='rooms'){show('rooms');renderRooms()}
+  else if(v==='room'){if(currentRoomId)openRoom(currentRoomId);else{const rs=await rooms();if(rs[0])openRoom(rs[0].id)}}
+  else if(v==='stats'){show('stats');stats(null)}
+  else show('settings');
+});
 
-$('export').onclick=async()=>{let data={app:'MemoryRooms',backupVersion:3,rooms:await rooms(),markers:(await all(MARKERS)).map(markerNorm),exportedAt:new Date().toISOString()};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='memoryrooms-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click()};
-$('import').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.rooms)||!Array.isArray(d.markers))throw Error('Ungültiges Backup');if(!confirm('Backup vollständig wiederherstellen? Die aktuellen Daten werden ersetzt.'))return;let tx=db.transaction([ROOMS,MARKERS],'readwrite');tx.objectStore(ROOMS).clear();tx.objectStore(MARKERS).clear();d.rooms.forEach(r=>tx.objectStore(ROOMS).put(r));d.markers.forEach(m=>tx.objectStore(MARKERS).put(markerNorm(m)));tx.oncomplete=()=>{renderRooms();show('rooms');alert('Backup wiederhergestellt.')}}catch(err){alert('Backup konnte nicht importiert werden.')}e.target.value=''};
-$('clear').onclick=async()=>{if(!confirm('Wirklich alle Daten löschen?'))return;if(!confirm('Letzte Sicherheitsabfrage: Daten unwiderruflich löschen?'))return;let tx=db.transaction([ROOMS,MARKERS],'readwrite');tx.objectStore(ROOMS).clear();tx.objectStore(MARKERS).clear();tx.oncomplete=async()=>{currentRoom=null;currentMarkers=[];await ensureDemo();await renderRooms();show('rooms')}};
-
-document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{let v=b.dataset.view;if(v==='rooms'){show('rooms');renderRooms()}else if(v==='room'){if(currentRoom)openRoom(currentRoom.id);else{let rs=await rooms();if(rs[0])openRoom(rs[0].id)}}else if(v==='stats'){show('stats');stats()}else show('settings')});
-
-(async()=>{try{await openDB();await ensureDemo();await renderRooms()}catch(e){console.error(e);alert('MemoryRooms konnte nicht gestartet werden.')}})();
+(async()=>{
+  try{
+    await openDB();await ensureDemo();await renderRooms();
+    if(navigator.storage&&navigator.storage.persist){try{await navigator.storage.persist()}catch(e){}}
+    if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+  }catch(e){console.error(e);alert('MemoryRooms konnte nicht gestartet werden.')}
+})();
 </script>
 </body>
 </html>
