@@ -1,24 +1,21 @@
-# MemoryRooms v8
+# MemoryRooms v9
 
-MemoryRooms ist eine lokale Lern-Web-App nach dem Loci-/Memory-Palace-Prinzip.
+MemoryRooms – lokale Lern-Web-App nach dem Loci-/Memory-Palace-Prinzip.
 
-## v8
-- Sichere Raumverwaltung: Räume können über ⋯ gelöscht werden; der letzte Raum bleibt erhalten.
-- Globale Lernabfrage-Einstellungen:
-  - Alle Lernpunkte / nur fürs Quiz freigegebene / nur zu wiederholende
-  - 5 / 10 / 20 / alle Lernpunkte
-  - aktueller Raum / alle Räume
-  - zufällige Reihenfolge an/aus
-- Die Schaltfläche **Lernen** startet eine Lernrunde nach diesen Einstellungen.
-- Einstellungen werden lokal gespeichert und in Backups mitgesichert.
-- Bestehende IndexedDB-Daten bleiben erhalten; DB-Version bleibt 3.
-- Keine KI, keine Cloud-Datenbank.
+## Neu in v9
+- Jeder Raum kann ein eigenes, lokal gespeichertes Raumfoto haben.
+- Eigene Fotos können direkt auf dem iPhone/iPad aus der Fotos-App ausgewählt werden.
+- Bestehende v8-Räume bleiben erhalten; der bisherige Demo-Wohnraum behält sein Standardfoto.
+- Lernpunkt: **Titel ODER Frage** reicht. Beide Felder sind optional einzeln nutzbar; eine Antwort/Lösung ist erforderlich.
+- Im Lernmodus wird nur die passende Eingabe als eigentliche Aufgabe angezeigt.
+- Der Lernmodus läuft auf dem iPhone vollflächig und wird nicht mehr von der unteren Navigation überlagert.
+- Raumverwaltung erfolgt über das Bearbeiten-Menü; der letzte Raum kann nicht gelöscht werden.
+- Raumfotos und Einstellungen werden mit dem JSON-Backup mitgesichert.
+- Keine KI, keine Cloud-Datenbank. Persönliche Daten bleiben lokal im Browser.
 
 ## Dateien
-- `index.html` – Oberfläche
-- `styles.css` – Design / Responsive Layout
-- `app.js` – Lernlogik, Einstellungen, Raumverwaltung
-- `db.js` – IndexedDB und Backup
-- `room-livingroom.jpg` – fotorealistischer Raumhintergrund
-
-Vor einem größeren Update: in der App zuerst ein Backup exportieren.
+- `index.html`
+- `app.js`
+- `db.js`
+- `styles.css`
+- `room-livingroom.jpg`

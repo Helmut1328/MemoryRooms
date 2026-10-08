@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#f5efe6">
   <meta name="description" content="MemoryRooms – Lernen mit dem Memory-Palace-Prinzip">
   <title>MemoryRooms</title>
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
   <div id="app">
@@ -40,7 +40,7 @@
         <div class="room-intro-line"><span>📍 Merkpunkte als Gedächtnisanker</span><span id="room-marker-count">0 Orte</span></div>
         <div class="room-container">
           <div class="room-background" id="room-bg">
-            <img class="room-photo-bg" src="room-livingroom.jpg" alt="Fotorealistischer Gedächtnisraum Wohnzimmer">
+            <img class="room-photo-bg" id="room-photo-bg" src="room-livingroom.jpg" alt="Gedächtnisraum">
             <div class="room-photo-shade"></div>
           </div>
           <div id="markers-layer"></div>
@@ -68,6 +68,29 @@
           <button id="btn-add-marker" class="room-action-card" type="button"><span>＋</span><div><strong>Merkpunkt hinzufügen</strong><small>Ort als Gedächtnisanker</small></div></button>
         </div>
         <button id="btn-back-rooms" class="room-back-link" type="button">← Zurück zu meinen Räumen</button>
+      </section>
+
+      <!-- Raum-Editor -->
+      <section id="view-edit-room" class="view overlay">
+        <div class="edit-card">
+          <h2 id="room-edit-title">Raum bearbeiten</h2>
+          <label>Raumname
+            <input type="text" id="input-room-name" placeholder="z. B. Wohnzimmer" maxlength="50" autocomplete="off">
+          </label>
+          <label class="photo-label">Eigenes Raumfoto <small>optional · ideal ist ein Foto deines echten Raums</small>
+            <input type="file" id="input-room-photo" accept="image/*">
+            <div id="room-photo-preview" class="photo-preview room-photo-preview hidden">
+              <img id="room-photo-preview-img" alt="Vorschau des Raumfotos">
+              <button type="button" id="btn-remove-room-photo" class="btn-remove-photo" aria-label="Raumfoto entfernen">✕</button>
+            </div>
+          </label>
+          <div class="room-photo-help">📷 <strong>Tipp:</strong> Fotografiere deinen echten Raum. Die Merkpunkte kannst du anschließend direkt auf dem Foto platzieren.</div>
+          <div class="edit-actions">
+            <button id="btn-save-room" class="btn btn-primary btn-large" type="button">Speichern</button>
+            <button id="btn-delete-room" class="btn btn-danger btn-large hidden" type="button">Raum löschen</button>
+            <button id="btn-cancel-room" class="btn btn-ghost btn-large" type="button">Abbrechen</button>
+          </div>
+        </div>
       </section>
 
       <!-- Merkpunkt-Menü: Lernen / Bearbeiten -->
@@ -197,13 +220,14 @@
       <section id="view-edit-item" class="view overlay">
         <div class="edit-card">
           <h2 id="item-edit-title">Lernpunkt</h2>
-          <label>Titel
-            <input type="text" id="input-item-title" placeholder="Hauptstadt" maxlength="60" autocomplete="off">
+          <div class="field-note">Du brauchst <strong>Titel ODER Frage</strong> – beides zusammen ist nicht nötig.</div>
+          <label>Titel <small>optional</small>
+            <input type="text" id="input-item-title" placeholder="z. B. Hauptstadt von Frankreich" maxlength="100" autocomplete="off">
           </label>
-          <label>Frage
-            <input type="text" id="input-item-question" placeholder="Was ist die Hauptstadt von Frankreich?" maxlength="200" autocomplete="off">
+          <label>Frage <small>optional</small>
+            <input type="text" id="input-item-question" placeholder="z. B. Wie heißt die Hauptstadt?" maxlength="200" autocomplete="off">
           </label>
-          <label>Antwort
+          <label>Antwort / Lösung
             <textarea id="input-item-answer" placeholder="Paris" rows="2"></textarea>
           </label>
           <label>Gedankenstütze / Eselsbrücke <small>erst nach der Antwort sichtbar</small>

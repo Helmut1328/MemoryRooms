@@ -10,6 +10,8 @@ let editingItems = [];
 let editingItemIndex = -1;
 let itemPhotoBase64 = null;
 let photoBase64 = null;
+let roomPhotoBase64 = null;
+let editingRoomId = null;
 
 let isDragging = false;
 let dragMarker = null;
@@ -59,6 +61,7 @@ const views = {
   learn: document.getElementById('view-learn'),
   quiz: document.getElementById('view-quiz'),
   edit: document.getElementById('view-edit-marker'),
+  editRoom: document.getElementById('view-edit-room'),
   editItem: document.getElementById('view-edit-item'),
   stats: document.getElementById('view-stats'),
   settings: document.getElementById('view-settings')
@@ -74,6 +77,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   try {
     await openDB();
     await ensureDemoRoom();
+    await ensureRoomPhotoCompatibility();
     await renderRoomList();
     setupEventListeners();
     console.log('MemoryRooms v3 bereit.');
@@ -83,6 +87,17 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 });
 
+async function ensureRoomPhotoCompatibility() {
+  const rooms = await getAllRooms();
+  for (let i = 0; i < rooms.length; i++) {
+    const room = rooms[i];
+    if (!Object.prototype.hasOwnProperty.call(room, 'photo')) {
+      room.photo = room.name === 'Wohnzimmer' ? 'room-livingroom.jpg' : null;
+      await saveRoom(room);
+    }
+  }
+}
+
 async function ensureDemoRoom() {
   const rooms = await getAllRooms();
   if (rooms.length > 0) return;
@@ -91,6 +106,7 @@ async function ensureDemoRoom() {
     id: generateId(),
     name: 'Wohnzimmer',
     icon: '🛋️',
+    photo: 'room-livingroom.jpg',
     createdAt: new Date().toISOString()
   };
   await saveRoom(demoRoom);
@@ -162,6 +178,11 @@ function setupEventListeners() {
   });
 
   document.getElementById('btn-add-room').addEventListener('click', createNewRoom);
+  document.getElementById('btn-save-room').addEventListener('click', saveCurrentRoom);
+  document.getElementById('btn-cancel-room').addEventListener('click', closeRoomEditor);
+  document.getElementById('btn-delete-room').addEventListener('click', deleteCurrentRoom);
+  document.getElementById('input-room-photo').addEventListener('change', handleRoomPhotoSelect);
+  document.getElementById('btn-remove-room-photo').addEventListener('click', removeRoomPhoto);
   document.getElementById('btn-back-rooms').addEventListener('click', function () {
     showView('rooms');
     renderRoomList();
@@ -276,7 +297,9 @@ async function renderRoomList() {
     const card = document.createElement('div');
     card.className = 'room-card';
     card.innerHTML =
-      '<div class="room-card-icon">' + (room.icon || '🏠') + '</div>' +
+      (room.photo
+        ? '<img class="room-card-photo" src="' + room.photo + '" alt="">'
+        : '<div class="room-card-icon">' + (room.icon || '🏠') + '</div>') +
       '<div class="room-card-info">' +
       '<h3>' + escapeHtml(room.name) + '</h3>' +
       '<div class="room-card-meta">' +
@@ -295,45 +318,156 @@ async function renderRoomList() {
     });
     card.querySelector('.room-card-menu').addEventListener('click', function (e) {
       e.stopPropagation();
-      openRoomActions(room);
+      openRoomEditor(room.id);
     });
     roomListEl.appendChild(card);
   }
 }
 
 async function openRoomActions(room) {
-  const action = prompt('Raum „' + room.name + '“\n\n1 = Öffnen\n2 = Löschen', '1');
+  const action = prompt('Raum „' + room.name + '“\n\n1 = Öffnen\n2 = Bearbeiten\n3 = Löschen', '1');
   if (action === '1') {
     openRoom(room.id);
     return;
   }
-  if (action !== '2') return;
+  if (action === '2') {
+    openRoomEditor(room.id);
+    return;
+  }
+  if (action !== '3') return;
+  await confirmAndDeleteRoom(room);
+}
+
+async function confirmAndDeleteRoom(room) {
   const rooms = await getAllRooms();
   if (rooms.length <= 1) {
     alert('Der letzte Raum kann nicht gelöscht werden. Erstelle zuerst einen neuen Raum.');
-    return;
+    return false;
   }
   const markers = await getMarkersByRoom(room.id);
   const itemCount = markers.reduce(function (sum, m) { return sum + countItems(m); }, 0);
   const ok = confirm('Raum „' + room.name + '“ wirklich löschen?\n\nDabei werden ' + markers.length + ' Merkpunkte und ' + itemCount + ' Lernpunkte dauerhaft gelöscht.');
-  if (!ok) return;
+  if (!ok) return false;
   await deleteRoom(room.id);
   if (currentRoomId === room.id) currentRoomId = null;
   await renderRoomList();
+  return true;
 }
 
 async function createNewRoom() {
-  const name = prompt('Name des neuen Raums:', 'Arbeitszimmer');
-  if (!name || !name.trim()) return;
-  const room = {
-    id: generateId(),
-    name: name.trim(),
-    icon: '🏠',
-    createdAt: new Date().toISOString()
-  };
-  await saveRoom(room);
+  openRoomEditor(null);
+}
+
+function openRoomEditor(roomId) {
+  editingRoomId = roomId;
+  roomPhotoBase64 = null;
+  const nameInput = document.getElementById('input-room-name');
+  const preview = document.getElementById('room-photo-preview');
+  const img = document.getElementById('room-photo-preview-img');
+  const deleteBtn = document.getElementById('btn-delete-room');
+  const title = document.getElementById('room-edit-title');
+
+  if (roomId) {
+    const roomPromise = getAllRooms();
+    roomPromise.then(function(rooms) {
+      const room = rooms.find(function(r) { return r.id === roomId; });
+      if (!room) return;
+      title.textContent = 'Raum bearbeiten';
+      nameInput.value = room.name || '';
+      deleteBtn.classList.remove('hidden');
+      deleteBtn.disabled = rooms.length <= 1;
+      deleteBtn.textContent = rooms.length <= 1 ? 'Letzten Raum nicht löschen' : 'Raum löschen';
+      if (room.photo) {
+        roomPhotoBase64 = room.photo;
+        img.src = room.photo;
+        preview.classList.remove('hidden');
+      } else {
+        preview.classList.add('hidden');
+      }
+      document.getElementById('input-room-photo').value = '';
+      views.editRoom.classList.add('active');
+    });
+  } else {
+    title.textContent = 'Neuen Raum erstellen';
+    nameInput.value = '';
+    deleteBtn.classList.add('hidden');
+    deleteBtn.disabled = false;
+    deleteBtn.textContent = 'Raum löschen';
+    preview.classList.add('hidden');
+    document.getElementById('input-room-photo').value = '';
+    views.editRoom.classList.add('active');
+  }
+}
+
+function closeRoomEditor() {
+  views.editRoom.classList.remove('active');
+  editingRoomId = null;
+  roomPhotoBase64 = null;
+}
+
+async function saveCurrentRoom() {
+  const name = document.getElementById('input-room-name').value.trim();
+  if (!name) {
+    alert('Bitte einen Raumnamen eingeben.');
+    return;
+  }
+  if (editingRoomId) {
+    const rooms = await getAllRooms();
+    const room = rooms.find(function(r) { return r.id === editingRoomId; });
+    if (!room) return;
+    room.name = name;
+    room.photo = roomPhotoBase64;
+    await saveRoom(room);
+    if (currentRoomId === room.id) {
+      document.getElementById('room-view-title').textContent = room.name;
+      setRoomBackground(room);
+    }
+  } else {
+    const room = { id: generateId(), name: name, icon: '🏠', photo: roomPhotoBase64, createdAt: new Date().toISOString() };
+    await saveRoom(room);
+    closeRoomEditor();
+    await renderRoomList();
+    openRoom(room.id);
+    return;
+  }
+  closeRoomEditor();
   await renderRoomList();
-  openRoom(room.id);
+}
+
+async function deleteCurrentRoom() {
+  if (!editingRoomId) return;
+  const rooms = await getAllRooms();
+  const room = rooms.find(function(r) { return r.id === editingRoomId; });
+  if (!room) return;
+  const deleted = await confirmAndDeleteRoom(room);
+  if (deleted) {
+    closeRoomEditor();
+    showView('rooms');
+  }
+}
+
+function handleRoomPhotoSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 6 * 1024 * 1024) {
+    alert('Foto zu groß. Bitte ein Foto bis ca. 6 MB wählen.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    compressImage(ev.target.result, 1400, 0.78).then(function(base64) {
+      roomPhotoBase64 = base64;
+      document.getElementById('room-photo-preview-img').src = base64;
+      document.getElementById('room-photo-preview').classList.remove('hidden');
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeRoomPhoto() {
+  roomPhotoBase64 = null;
+  document.getElementById('room-photo-preview').classList.add('hidden');
+  document.getElementById('input-room-photo').value = '';
 }
 
 async function openCurrentOrFirstRoom() {
@@ -358,6 +492,7 @@ async function openRoom(roomId) {
   if (roomTitle) roomTitle.textContent = room.name;
 
   currentMarkers = await getMarkersByRoom(roomId);
+  setRoomBackground(room);
   resetSideMarkerPanel();
   const roomMarkerCount = document.getElementById('room-marker-count');
   if (roomMarkerCount) roomMarkerCount.textContent = currentMarkers.length + (currentMarkers.length === 1 ? ' Ort' : ' Orte');
@@ -366,6 +501,22 @@ async function openRoom(roomId) {
 }
 
 /* ===== Merkpunkte darstellen ===== */
+
+function setRoomBackground(room) {
+  const img = document.getElementById('room-photo-bg');
+  const bg = document.getElementById('room-bg');
+  if (!img || !bg) return;
+  if (room && room.photo) {
+    img.src = room.photo;
+    img.alt = 'Gedächtnisraum ' + (room.name || '');
+    img.classList.remove('hidden');
+    bg.classList.remove('no-room-photo');
+  } else {
+    img.removeAttribute('src');
+    img.classList.add('hidden');
+    bg.classList.add('no-room-photo');
+  }
+}
 
 function renderMarkers() {
   markersLayer.innerHTML = '';
@@ -646,14 +797,18 @@ function saveCurrentItem() {
   const title = document.getElementById('input-item-title').value.trim();
   const question = document.getElementById('input-item-question').value.trim();
   const answer = document.getElementById('input-item-answer').value.trim();
-  if (!question && !answer) {
-    alert('Bitte mindestens eine Frage oder Antwort eingeben.');
+  if (!title && !question) {
+    alert('Bitte entweder einen Titel oder eine Frage eingeben. Beides ist nicht nötig.');
+    return;
+  }
+  if (!answer) {
+    alert('Bitte eine Antwort / Lösung eingeben.');
     return;
   }
   const data = {
     id: editingItemIndex >= 0 ? editingItems[editingItemIndex].id : generateId(),
-    title: title || ('Lernpunkt ' + (editingItems.length + 1)),
-    question: question || 'Was hast du gespeichert?',
+    title: title,
+    question: question,
     answer: answer,
     hint: document.getElementById('input-item-hint').value.trim(),
     photo: itemPhotoBase64,
@@ -857,8 +1012,11 @@ function showLearnItem() {
   }
   document.getElementById('learn-progress').textContent =
     (learnIndex + 1) + ' von ' + learnQueue.length;
-  document.getElementById('learn-question-text').textContent =
-    item.question || 'Was hast du hier gespeichert?';
+  const promptEl = document.getElementById('learn-question-text');
+  const promptLabel = document.querySelector('#learn-question-block .prompt');
+  const displayPrompt = item.question || item.title || 'Lernpunkt';
+  promptEl.textContent = displayPrompt;
+  if (promptLabel) promptLabel.textContent = item.question ? 'FRAGE' : 'LERNPUNKT';
   document.getElementById('learn-content').textContent = item.answer || '(keine Antwort)';
   const photoEl = document.getElementById('learn-photo');
   if (item.photo) {

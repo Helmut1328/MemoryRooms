@@ -270,6 +270,7 @@ async function exportAllData() {
     dbVersion: DB_VERSION,
     rooms: rooms,
     markers: markers,
+    settings: (typeof appSettings !== 'undefined' ? appSettings : null),
     exportedAt: new Date().toISOString()
   };
 }
