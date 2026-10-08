@@ -316,11 +316,9 @@ function renderMarkers() {
 }
 
 function onMarkerTap(marker) {
-  if (markerHasContent(marker)) {
-    openMarkerMenu(marker);
-  } else {
-    openEditMarker(marker.id);
-  }
+  // Jeder Merkpunkt bekommt dasselbe, eindeutig sichtbare Menü.
+  // So ist Bearbeiten immer erreichbar – auch bei einem noch leeren Merkpunkt.
+  openMarkerMenu(marker);
 }
 
 function openMarkerMenu(marker) {
@@ -329,8 +327,13 @@ function openMarkerMenu(marker) {
   document.getElementById('menu-marker-desc').textContent = marker.description || '';
   const n = countItems(marker);
   const m = countMasteredItems(marker);
-  document.getElementById('menu-marker-meta').textContent =
-    n + ' Lernpunkt' + (n !== 1 ? 'e' : '') + (n > 0 ? ' · ' + itemProgressPercent(marker) + ' % beherrscht' : '');
+  document.getElementById('menu-marker-meta').textContent = n > 0
+    ? n + ' Lernpunkt' + (n !== 1 ? 'e' : '') + ' · ' + itemProgressPercent(marker) + ' % beherrscht'
+    : 'Noch keine Lernpunkte angelegt';
+  const learnBtn = document.getElementById('btn-menu-learn');
+  learnBtn.disabled = n === 0;
+  learnBtn.style.opacity = n === 0 ? '0.5' : '1';
+  learnBtn.title = n === 0 ? 'Zuerst einen Lernpunkt anlegen' : '';
   views.markerMenu.classList.add('active');
 }
 

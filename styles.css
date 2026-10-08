@@ -442,3 +442,5 @@ html, body {
   .room-container { max-height: 58vh; }
   .header h1 { font-size: 1.45rem; }
 }
+
+.menu-help { text-align: center; color: var(--text-muted); font-size: 0.8rem; line-height: 1.4; margin: 0 0 16px; }
