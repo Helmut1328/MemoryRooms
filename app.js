@@ -1,25 +1,44 @@
 /**
- * MemoryRooms – Hauptlogik
- * MVP: Räume, Merkpunkte, Lernen, lokales Speichern
+ * MemoryRooms – Hauptlogik v3
+ * Räume, Merkpunkte, Lernpunkte, Lernen, Quiz, Statistik, Backup
  */
 
-// ===== Zustand =====
 let currentRoomId = null;
 let currentMarkers = [];
-let editingMarkerId = null;   // null = neuer Merkpunkt
-let currentLearnMarker = null;
-let photoBase64 = null;       // temporär für Foto-Upload
+let editingMarkerId = null;
+let editingItems = [];
+let editingItemIndex = -1;
+let itemPhotoBase64 = null;
+let photoBase64 = null;
+
 let isDragging = false;
 let dragMarker = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 
-// ===== DOM-Elemente =====
+let learnQueue = [];
+let learnIndex = 0;
+let learnKnown = 0;
+let learnUnknown = 0;
+let learnMarkerId = null;
+let onlyWrongMode = false;
+
+let quizQueue = [];
+let quizIndex = 0;
+let quizCorrect = 0;
+let quizWrong = 0;
+let quizWrongItems = [];
+let quizSelected = null;
+let menuMarker = null;
+
 const views = {
   rooms: document.getElementById('view-rooms'),
   room: document.getElementById('view-room'),
+  markerMenu: document.getElementById('view-marker-menu'),
   learn: document.getElementById('view-learn'),
+  quiz: document.getElementById('view-quiz'),
   edit: document.getElementById('view-edit-marker'),
+  editItem: document.getElementById('view-edit-item'),
   stats: document.getElementById('view-stats'),
   settings: document.getElementById('view-settings')
 };
@@ -30,74 +49,70 @@ const roomListEl = document.getElementById('room-list');
 const markersLayer = document.getElementById('markers-layer');
 const roomContainer = document.querySelector('.room-container');
 
-// ===== Initialisierung =====
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async function () {
   try {
     await openDB();
     await ensureDemoRoom();
     await renderRoomList();
     setupEventListeners();
-    console.log('MemoryRooms bereit.');
+    console.log('MemoryRooms v3 bereit.');
   } catch (err) {
     console.error('Startfehler:', err);
-    alert('Fehler beim Starten der App. Bitte Seite neu laden.');
+    alert('Fehler beim Starten. Bitte Seite neu laden.');
   }
 });
 
-/**
- * Stellt sicher, dass mindestens ein Demo-Raum existiert
- */
 async function ensureDemoRoom() {
   const rooms = await getAllRooms();
-  if (rooms.length === 0) {
-    const demoRoom = {
+  if (rooms.length > 0) return;
+
+  const demoRoom = {
+    id: generateId(),
+    name: 'Wohnzimmer',
+    icon: '🛋️',
+    createdAt: new Date().toISOString()
+  };
+  await saveRoom(demoRoom);
+
+  const demoMarkers = [
+    { title: 'Tür', x: 12, y: 82 },
+    { title: 'Tisch', x: 42, y: 55 },
+    { title: 'Sofa', x: 78, y: 68 },
+    { title: 'Fenster', x: 50, y: 18 },
+    { title: 'Regal', x: 15, y: 42 },
+    { title: 'Bild', x: 82, y: 28 },
+    { title: 'Schrank', x: 62, y: 72 }
+  ];
+
+  for (let i = 0; i < demoMarkers.length; i++) {
+    const m = demoMarkers[i];
+    await saveMarker({
       id: generateId(),
-      name: 'Wohnzimmer',
-      icon: '🛋️',
-      createdAt: new Date().toISOString()
-    };
-    await saveRoom(demoRoom);
-
-    // Beispiel-Merkpunkte (ohne Inhalt – Nutzer füllt selbst)
-    const demoMarkers = [
-      { title: 'Tür', x: 12, y: 82 },
-      { title: 'Tisch', x: 42, y: 55 },
-      { title: 'Sofa', x: 78, y: 68 },
-      { title: 'Fenster', x: 50, y: 18 },
-      { title: 'Regal', x: 15, y: 42 },
-      { title: 'Bild', x: 82, y: 28 },
-      { title: 'Schrank', x: 62, y: 72 }
-    ];
-
-    for (const m of demoMarkers) {
-      await saveMarker({
-        id: generateId(),
-        roomId: demoRoom.id,
-        title: m.title,
-        content: '',
-        hint: '',
-        photo: null,
-        x: m.x,   // Prozent
-        y: m.y,
-        stats: { timesAsked: 0, timesKnown: 0, timesUnknown: 0, lastAsked: null }
-      });
-    }
+      roomId: demoRoom.id,
+      title: m.title,
+      description: '',
+      content: '',
+      hint: '',
+      photo: null,
+      x: m.x,
+      y: m.y,
+      items: [],
+      stats: { timesAsked: 0, timesKnown: 0, timesUnknown: 0, lastAsked: null }
+    });
   }
 }
 
-// ===== Navigation =====
 function showView(name) {
-  Object.values(views).forEach(v => v.classList.remove('active'));
+  Object.keys(views).forEach(function (k) {
+    if (views[k]) views[k].classList.remove('active');
+  });
   if (views[name]) views[name].classList.add('active');
 
-  // Nav-Buttons aktualisieren
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.view === name ||
-      (name === 'room' && btn.dataset.view === 'room') ||
-      (name === 'rooms' && btn.dataset.view === 'rooms'));
+  document.querySelectorAll('.nav-btn').forEach(function (btn) {
+    const v = btn.dataset.view;
+    btn.classList.toggle('active', v === name || (name === 'room' && v === 'room') || (name === 'rooms' && v === 'rooms'));
   });
 
-  // Header anpassen
   if (name === 'rooms') {
     headerTitle.textContent = 'MemoryRooms';
     headerSubtitle.textContent = 'Dein virtueller Gedächtnisraum';
@@ -111,14 +126,11 @@ function showView(name) {
 }
 
 function setupEventListeners() {
-  // Untere Navigation
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll('.nav-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
       const view = btn.dataset.view;
-      if (view === 'room') {
-        // Zum aktuellen Raum oder ersten Raum
-        openCurrentOrFirstRoom();
-      } else if (view === 'rooms') {
+      if (view === 'room') openCurrentOrFirstRoom();
+      else if (view === 'rooms') {
         showView('rooms');
         renderRoomList();
       } else {
@@ -128,74 +140,115 @@ function setupEventListeners() {
     });
   });
 
-  // Neuen Raum erstellen
   document.getElementById('btn-add-room').addEventListener('click', createNewRoom);
-
-  // Zurück zu Räumen
-  document.getElementById('btn-back-rooms').addEventListener('click', () => {
+  document.getElementById('btn-back-rooms').addEventListener('click', function () {
     showView('rooms');
     renderRoomList();
   });
-
-  // Merkpunkt hinzufügen
-  document.getElementById('btn-add-marker').addEventListener('click', () => {
+  document.getElementById('btn-add-marker').addEventListener('click', function () {
     openEditMarker(null);
   });
+  document.getElementById('btn-quiz-room').addEventListener('click', startRoomQuiz);
 
-  // Edit-Formular
+  document.getElementById('btn-menu-learn').addEventListener('click', function () {
+    if (menuMarker) startLearn(menuMarker, false);
+  });
+  document.getElementById('btn-menu-edit').addEventListener('click', function () {
+    if (menuMarker) openEditMarker(menuMarker.id);
+  });
+  document.getElementById('btn-menu-close').addEventListener('click', closeMarkerMenu);
+
   document.getElementById('btn-save-marker').addEventListener('click', saveCurrentMarker);
   document.getElementById('btn-cancel-edit').addEventListener('click', closeEditMarker);
   document.getElementById('btn-delete-marker').addEventListener('click', deleteCurrentMarker);
-
-  // Foto-Upload
+  document.getElementById('btn-add-item').addEventListener('click', function () {
+    openEditItem(-1);
+  });
   document.getElementById('input-marker-photo').addEventListener('change', handlePhotoSelect);
   document.getElementById('btn-remove-photo').addEventListener('click', removePhoto);
 
-  // Lernmodus
+  document.getElementById('btn-save-item').addEventListener('click', saveCurrentItem);
+  document.getElementById('btn-cancel-item').addEventListener('click', closeEditItem);
+  document.getElementById('btn-delete-item').addEventListener('click', deleteCurrentItem);
+  document.getElementById('input-item-photo').addEventListener('change', handleItemPhotoSelect);
+  document.getElementById('btn-remove-item-photo').addEventListener('click', removeItemPhoto);
+  document.getElementById('input-item-quiz').addEventListener('change', function () {
+    document.getElementById('quiz-wrong-block').style.display =
+      document.getElementById('input-item-quiz').checked ? 'block' : 'none';
+  });
+
   document.getElementById('btn-show-solution').addEventListener('click', showSolution);
   document.getElementById('btn-close-learn').addEventListener('click', closeLearn);
-  document.getElementById('btn-knew').addEventListener('click', () => recordAnswer(true));
-  document.getElementById('btn-not-knew').addEventListener('click', () => recordAnswer(false));
+  document.getElementById('btn-knew').addEventListener('click', function () { recordAnswer(true); });
+  document.getElementById('btn-not-knew').addEventListener('click', function () { recordAnswer(false); });
+  document.getElementById('btn-learn-again').addEventListener('click', function () {
+    const m = currentMarkers.find(function (x) { return x.id === learnMarkerId; });
+    if (m) startLearn(m, onlyWrongMode);
+  });
+  document.getElementById('btn-learn-done').addEventListener('click', closeLearn);
 
-  // Einstellungen
+  document.getElementById('btn-quiz-check').addEventListener('click', checkQuizAnswer);
+  document.getElementById('btn-quiz-abort').addEventListener('click', closeQuiz);
+  document.getElementById('btn-quiz-next').addEventListener('click', nextQuizQuestion);
+  document.getElementById('btn-quiz-retry-wrong').addEventListener('click', function () {
+    if (quizWrongItems.length === 0) {
+      alert('Keine falschen Antworten in dieser Runde.');
+      return;
+    }
+    startQuizWithItems(quizWrongItems.slice());
+  });
+  document.getElementById('btn-quiz-restart').addEventListener('click', startRoomQuiz);
+  document.getElementById('btn-quiz-done').addEventListener('click', closeQuiz);
+
   document.getElementById('btn-export-data').addEventListener('click', exportData);
-  document.getElementById('input-import-data').addEventListener('change', handleImportFile);
+  document.getElementById('input-import-data').addEventListener('change', importData);
   document.getElementById('btn-clear-data').addEventListener('click', clearData);
 
-  // Drag & Drop für Merkpunkte (Touch + Mouse)
   markersLayer.addEventListener('pointerdown', onMarkerPointerDown);
   document.addEventListener('pointermove', onMarkerPointerMove);
   document.addEventListener('pointerup', onMarkerPointerUp);
   document.addEventListener('pointercancel', onMarkerPointerUp);
 }
 
-// ===== Räume =====
+/* ===== Räume ===== */
+
 async function renderRoomList() {
   const rooms = await getAllRooms();
   roomListEl.innerHTML = '';
 
   if (rooms.length === 0) {
-    roomListEl.innerHTML = `
-      <div class="empty-state">
-        <div class="icon">🏠</div>
-        <p>Noch keine Räume.<br>Erstelle deinen ersten Gedächtnisraum!</p>
-      </div>`;
+    roomListEl.innerHTML =
+      '<div class="empty-state"><div class="icon">🏠</div><p>Noch keine Räume.<br>Erstelle deinen ersten Gedächtnisraum!</p></div>';
     return;
   }
 
-  for (const room of rooms) {
+  for (let i = 0; i < rooms.length; i++) {
+    const room = rooms[i];
     const markers = await getMarkersByRoom(room.id);
-    const withContent = markers.filter(m => m.content && m.content.trim()).length;
+    let itemCount = 0;
+    let mastered = 0;
+    markers.forEach(function (m) {
+      itemCount += countItems(m);
+      mastered += countMasteredItems(m);
+    });
+    const pct = itemCount > 0 ? Math.round((mastered / itemCount) * 100) : 0;
 
     const card = document.createElement('div');
     card.className = 'room-card';
-    card.innerHTML = `
-      <div class="room-card-icon">${room.icon || '🏠'}</div>
-      <div class="room-card-info">
-        <h3>${escapeHtml(room.name)}</h3>
-        <p>${markers.length} Merkpunkte · ${withContent} mit Inhalt</p>
-      </div>`;
-    card.addEventListener('click', () => openRoom(room.id));
+    card.innerHTML =
+      '<div class="room-card-icon">' + (room.icon || '🏠') + '</div>' +
+      '<div class="room-card-info">' +
+      '<h3>' + escapeHtml(room.name) + '</h3>' +
+      '<div class="room-card-meta">' +
+      '<span class="meta-chip">' + markers.length + ' Merkpunkte</span>' +
+      '<span class="meta-chip' + (itemCount > 0 ? ' filled' : '') + '">' + itemCount + ' Lernpunkte</span>' +
+      (itemCount > 0 ? '<span class="meta-chip filled">' + pct + ' % gelernt</span>' : '') +
+      '</div>' +
+      (itemCount > 0
+        ? '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
+        : '') +
+      '</div>';
+    card.addEventListener('click', function () { openRoom(room.id); });
     roomListEl.appendChild(card);
   }
 }
@@ -203,7 +256,6 @@ async function renderRoomList() {
 async function createNewRoom() {
   const name = prompt('Name des neuen Raums:', 'Arbeitszimmer');
   if (!name || !name.trim()) return;
-
   const room = {
     id: generateId(),
     name: name.trim(),
@@ -228,61 +280,74 @@ async function openCurrentOrFirstRoom() {
 async function openRoom(roomId) {
   currentRoomId = roomId;
   const rooms = await getAllRooms();
-  const room = rooms.find(r => r.id === roomId);
+  const room = rooms.find(function (r) { return r.id === roomId; });
   if (!room) return;
 
   headerTitle.textContent = room.name;
-  headerSubtitle.textContent = 'Tippe auf einen Merkpunkt zum Lernen';
+  headerSubtitle.textContent = 'Tippe auf einen Merkpunkt';
 
   currentMarkers = await getMarkersByRoom(roomId);
   renderMarkers();
   showView('room');
 }
 
-// ===== Merkpunkte darstellen =====
+/* ===== Merkpunkte darstellen ===== */
+
 function renderMarkers() {
   markersLayer.innerHTML = '';
-
-  currentMarkers.forEach(marker => {
+  currentMarkers.forEach(function (marker, idx) {
     const el = document.createElement('div');
-    el.className = 'marker' + (marker.content && marker.content.trim() ? ' has-content' : '');
+    const has = markerHasContent(marker);
+    const mastered = countItems(marker) > 0 && countMasteredItems(marker) === countItems(marker) && countItems(marker) > 0;
+    el.className = 'marker' + (has ? ' has-content' : '') + (mastered ? ' mastered' : '');
     el.dataset.id = marker.id;
     el.style.left = marker.x + '%';
     el.style.top = marker.y + '%';
-    el.innerHTML = `<span class="marker-label">${escapeHtml(marker.title || '?')}</span>`;
-
-    // Kurzer Tap = Lernen / Bearbeiten
-    el.addEventListener('click', (e) => {
-      if (isDragging) return; // nach Drag keinen Click
+    el.innerHTML =
+      '<span class="marker-num">' + (idx + 1) + '</span>' +
+      '<span class="marker-label">' + escapeHtml(marker.title || '?') + '</span>';
+    el.addEventListener('click', function (e) {
+      if (isDragging) return;
       e.stopPropagation();
       onMarkerTap(marker);
     });
-
     markersLayer.appendChild(el);
   });
 }
 
 function onMarkerTap(marker) {
-  if (marker.content && marker.content.trim()) {
-    // Hat Inhalt → Lernmodus
-    openLearn(marker);
+  if (markerHasContent(marker)) {
+    openMarkerMenu(marker);
   } else {
-    // Noch leer → direkt bearbeiten
     openEditMarker(marker.id);
   }
 }
 
-// ===== Drag & Drop =====
+function openMarkerMenu(marker) {
+  menuMarker = marker;
+  document.getElementById('menu-marker-title').textContent = marker.title || 'Merkpunkt';
+  document.getElementById('menu-marker-desc').textContent = marker.description || '';
+  const n = countItems(marker);
+  const m = countMasteredItems(marker);
+  document.getElementById('menu-marker-meta').textContent =
+    n + ' Lernpunkt' + (n !== 1 ? 'e' : '') + (n > 0 ? ' · ' + itemProgressPercent(marker) + ' % beherrscht' : '');
+  views.markerMenu.classList.add('active');
+}
+
+function closeMarkerMenu() {
+  views.markerMenu.classList.remove('active');
+  menuMarker = null;
+}
+
+/* ===== Drag ===== */
+
 function onMarkerPointerDown(e) {
   const el = e.target.closest('.marker');
   if (!el) return;
-
   e.preventDefault();
   isDragging = false;
   dragMarker = el;
   el.setPointerCapture(e.pointerId);
-
-  const rect = roomContainer.getBoundingClientRect();
   const markerRect = el.getBoundingClientRect();
   dragOffsetX = e.clientX - (markerRect.left + markerRect.width / 2);
   dragOffsetY = e.clientY - (markerRect.top + markerRect.height / 2);
@@ -290,62 +355,58 @@ function onMarkerPointerDown(e) {
 
 function onMarkerPointerMove(e) {
   if (!dragMarker) return;
-
   isDragging = true;
   const rect = roomContainer.getBoundingClientRect();
   let x = ((e.clientX - dragOffsetX - rect.left) / rect.width) * 100;
   let y = ((e.clientY - dragOffsetY - rect.top) / rect.height) * 100;
-
-  // Begrenzen
   x = Math.max(5, Math.min(95, x));
   y = Math.max(5, Math.min(95, y));
-
   dragMarker.style.left = x + '%';
   dragMarker.style.top = y + '%';
 }
 
-async function onMarkerPointerUp(e) {
+async function onMarkerPointerUp() {
   if (!dragMarker) return;
-
   const id = dragMarker.dataset.id;
   const x = parseFloat(dragMarker.style.left);
   const y = parseFloat(dragMarker.style.top);
-
-  // Position speichern
-  const marker = currentMarkers.find(m => m.id === id);
+  const marker = currentMarkers.find(function (m) { return m.id === id; });
   if (marker) {
     marker.x = x;
     marker.y = y;
     await saveMarker(marker);
   }
-
-  // Kleine Verzögerung, damit der Click-Event nicht ausgelöst wird
-  setTimeout(() => { isDragging = false; }, 50);
+  setTimeout(function () { isDragging = false; }, 50);
   dragMarker = null;
 }
 
-// ===== Merkpunkt bearbeiten =====
+/* ===== Editor Merkpunkt + Lernpunkte ===== */
+
 function openEditMarker(markerId) {
+  closeMarkerMenu();
   editingMarkerId = markerId;
   photoBase64 = null;
 
   const titleInput = document.getElementById('input-marker-title');
-  const contentInput = document.getElementById('input-marker-content');
-  const hintInput = document.getElementById('input-marker-hint');
+  const descInput = document.getElementById('input-marker-desc');
   const photoPreview = document.getElementById('photo-preview');
   const photoImg = document.getElementById('photo-preview-img');
   const deleteBtn = document.getElementById('btn-delete-marker');
   const editTitle = document.getElementById('edit-title');
 
   if (markerId) {
-    const marker = currentMarkers.find(m => m.id === markerId);
+    const marker = currentMarkers.find(function (m) { return m.id === markerId; });
     if (!marker) return;
     editTitle.textContent = 'Merkpunkt bearbeiten';
     titleInput.value = marker.title || '';
-    contentInput.value = marker.content || '';
-    hintInput.value = marker.hint || '';
+    descInput.value = marker.description || '';
     deleteBtn.classList.remove('hidden');
-
+    editingItems = (marker.items || []).map(function (it) {
+      return Object.assign({}, it, {
+        wrongAnswers: (it.wrongAnswers || ['', '', '']).slice(0, 3),
+        stats: Object.assign({ attempts: 0, correct: 0, incorrect: 0, lastReviewed: null, mastery: 0 }, it.stats || {})
+      });
+    });
     if (marker.photo) {
       photoBase64 = marker.photo;
       photoImg.src = marker.photo;
@@ -356,52 +417,164 @@ function openEditMarker(markerId) {
   } else {
     editTitle.textContent = 'Neuer Merkpunkt';
     titleInput.value = '';
-    contentInput.value = '';
-    hintInput.value = '';
+    descInput.value = '';
     deleteBtn.classList.add('hidden');
+    editingItems = [];
     photoPreview.classList.add('hidden');
   }
 
   document.getElementById('input-marker-photo').value = '';
+  renderItemsList();
   views.edit.classList.add('active');
 }
 
 function closeEditMarker() {
   views.edit.classList.remove('active');
   editingMarkerId = null;
+  editingItems = [];
   photoBase64 = null;
+}
+
+function renderItemsList() {
+  const list = document.getElementById('items-list');
+  list.innerHTML = '';
+  if (editingItems.length === 0) {
+    list.innerHTML = '<p class="empty-items">Noch keine Lernpunkte. Tippe auf „+ Lernpunkt“.</p>';
+    return;
+  }
+  editingItems.forEach(function (item, idx) {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML =
+      '<div class="item-row-main">' +
+      '<strong>' + (idx + 1) + '. ' + escapeHtml(item.title || item.question || 'Lernpunkt') + '</strong>' +
+      '<span>' + escapeHtml(truncate(item.question || item.answer || '', 50)) + '</span>' +
+      '</div>' +
+      '<span class="item-row-badge">' + (item.useInQuiz ? '🎯' : '') + '</span>';
+    row.addEventListener('click', function () { openEditItem(idx); });
+    list.appendChild(row);
+  });
+}
+
+function openEditItem(index) {
+  editingItemIndex = index;
+  itemPhotoBase64 = null;
+  const isNew = index < 0;
+  document.getElementById('item-edit-title').textContent = isNew ? 'Neuer Lernpunkt' : 'Lernpunkt bearbeiten';
+  document.getElementById('btn-delete-item').classList.toggle('hidden', isNew);
+
+  if (!isNew) {
+    const item = editingItems[index];
+    document.getElementById('input-item-title').value = item.title || '';
+    document.getElementById('input-item-question').value = item.question || '';
+    document.getElementById('input-item-answer').value = item.answer || '';
+    document.getElementById('input-item-hint').value = item.hint || '';
+    document.getElementById('input-item-quiz').checked = item.useInQuiz !== false;
+    const wa = item.wrongAnswers || ['', '', ''];
+    document.getElementById('input-wrong-1').value = wa[0] || '';
+    document.getElementById('input-wrong-2').value = wa[1] || '';
+    document.getElementById('input-wrong-3').value = wa[2] || '';
+    if (item.photo) {
+      itemPhotoBase64 = item.photo;
+      document.getElementById('item-photo-preview-img').src = item.photo;
+      document.getElementById('item-photo-preview').classList.remove('hidden');
+    } else {
+      document.getElementById('item-photo-preview').classList.add('hidden');
+    }
+  } else {
+    document.getElementById('input-item-title').value = '';
+    document.getElementById('input-item-question').value = '';
+    document.getElementById('input-item-answer').value = '';
+    document.getElementById('input-item-hint').value = '';
+    document.getElementById('input-item-quiz').checked = true;
+    document.getElementById('input-wrong-1').value = '';
+    document.getElementById('input-wrong-2').value = '';
+    document.getElementById('input-wrong-3').value = '';
+    document.getElementById('item-photo-preview').classList.add('hidden');
+  }
+  document.getElementById('input-item-photo').value = '';
+  document.getElementById('quiz-wrong-block').style.display =
+    document.getElementById('input-item-quiz').checked ? 'block' : 'none';
+  views.editItem.classList.add('active');
+}
+
+function closeEditItem() {
+  views.editItem.classList.remove('active');
+  editingItemIndex = -1;
+  itemPhotoBase64 = null;
+}
+
+function saveCurrentItem() {
+  const title = document.getElementById('input-item-title').value.trim();
+  const question = document.getElementById('input-item-question').value.trim();
+  const answer = document.getElementById('input-item-answer').value.trim();
+  if (!question && !answer) {
+    alert('Bitte mindestens eine Frage oder Antwort eingeben.');
+    return;
+  }
+  const data = {
+    id: editingItemIndex >= 0 ? editingItems[editingItemIndex].id : generateId(),
+    title: title || ('Lernpunkt ' + (editingItems.length + 1)),
+    question: question || 'Was hast du gespeichert?',
+    answer: answer,
+    hint: document.getElementById('input-item-hint').value.trim(),
+    photo: itemPhotoBase64,
+    useInQuiz: document.getElementById('input-item-quiz').checked,
+    wrongAnswers: [
+      document.getElementById('input-wrong-1').value.trim(),
+      document.getElementById('input-wrong-2').value.trim(),
+      document.getElementById('input-wrong-3').value.trim()
+    ],
+    stats: editingItemIndex >= 0
+      ? editingItems[editingItemIndex].stats
+      : { attempts: 0, correct: 0, incorrect: 0, lastReviewed: null, mastery: 0 }
+  };
+  if (editingItemIndex >= 0) editingItems[editingItemIndex] = data;
+  else editingItems.push(data);
+  closeEditItem();
+  renderItemsList();
+}
+
+function deleteCurrentItem() {
+  if (editingItemIndex < 0) return;
+  if (!confirm('Lernpunkt wirklich löschen?')) return;
+  editingItems.splice(editingItemIndex, 1);
+  closeEditItem();
+  renderItemsList();
 }
 
 async function saveCurrentMarker() {
   const title = document.getElementById('input-marker-title').value.trim();
-  const content = document.getElementById('input-marker-content').value.trim();
-  const hint = document.getElementById('input-marker-hint').value.trim();
-
   if (!title) {
     alert('Bitte einen Titel eingeben (z. B. Tisch).');
     return;
   }
+  const description = document.getElementById('input-marker-desc').value.trim();
 
   if (editingMarkerId) {
-    // Bestehenden aktualisieren
-    const marker = currentMarkers.find(m => m.id === editingMarkerId);
+    const marker = currentMarkers.find(function (m) { return m.id === editingMarkerId; });
     if (!marker) return;
     marker.title = title;
-    marker.content = content;
-    marker.hint = hint;
+    marker.description = description;
     marker.photo = photoBase64;
+    marker.items = editingItems;
+    if (marker.items.length > 0) {
+      marker.content = marker.items[0].answer || '';
+      marker.hint = marker.items[0].hint || '';
+    }
     await saveMarker(marker);
   } else {
-    // Neu anlegen – in der Mitte des Raums
     const newMarker = {
       id: generateId(),
       roomId: currentRoomId,
-      title,
-      content,
-      hint,
+      title: title,
+      description: description,
+      content: editingItems[0] ? editingItems[0].answer : '',
+      hint: editingItems[0] ? editingItems[0].hint : '',
       photo: photoBase64,
       x: 50,
       y: 50,
+      items: editingItems,
       stats: { timesAsked: 0, timesKnown: 0, timesUnknown: 0, lastAsked: null }
     };
     await saveMarker(newMarker);
@@ -415,32 +588,25 @@ async function saveCurrentMarker() {
 
 async function deleteCurrentMarker() {
   if (!editingMarkerId) return;
-  if (!confirm('Merkpunkt wirklich löschen?')) return;
-
+  if (!confirm('Merkpunkt und alle Lernpunkte wirklich löschen?')) return;
   await deleteMarker(editingMarkerId);
   closeEditMarker();
   currentMarkers = await getMarkersByRoom(currentRoomId);
   renderMarkers();
 }
 
-// ===== Foto-Handling =====
 function handlePhotoSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
-
-  // Größe begrenzen (max. ~800 KB für IndexedDB-Komfort)
   if (file.size > 1.5 * 1024 * 1024) {
-    alert('Foto ist zu groß (max. ca. 1,5 MB). Bitte ein kleineres wählen oder komprimieren.');
+    alert('Foto zu groß (max. ca. 1,5 MB).');
     return;
   }
-
   const reader = new FileReader();
-  reader.onload = (ev) => {
-    // Optional: leichte Kompression über Canvas
-    compressImage(ev.target.result, 800, 0.7).then(base64 => {
+  reader.onload = function (ev) {
+    compressImage(ev.target.result, 800, 0.7).then(function (base64) {
       photoBase64 = base64;
-      const img = document.getElementById('photo-preview-img');
-      img.src = base64;
+      document.getElementById('photo-preview-img').src = base64;
       document.getElementById('photo-preview').classList.remove('hidden');
     });
   };
@@ -453,13 +619,34 @@ function removePhoto() {
   document.getElementById('input-marker-photo').value = '';
 }
 
-/**
- * Bild verkleinern / komprimieren (Client-seitig, keine KI)
- */
+function handleItemPhotoSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 1.5 * 1024 * 1024) {
+    alert('Foto zu groß (max. ca. 1,5 MB).');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function (ev) {
+    compressImage(ev.target.result, 800, 0.7).then(function (base64) {
+      itemPhotoBase64 = base64;
+      document.getElementById('item-photo-preview-img').src = base64;
+      document.getElementById('item-photo-preview').classList.remove('hidden');
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeItemPhoto() {
+  itemPhotoBase64 = null;
+  document.getElementById('item-photo-preview').classList.add('hidden');
+  document.getElementById('input-item-photo').value = '';
+}
+
 function compressImage(dataUrl, maxWidth, quality) {
-  return new Promise((resolve) => {
+  return new Promise(function (resolve) {
     const img = new Image();
-    img.onload = () => {
+    img.onload = function () {
       let w = img.width;
       let h = img.height;
       if (w > maxWidth) {
@@ -469,209 +656,433 @@ function compressImage(dataUrl, maxWidth, quality) {
       const canvas = document.createElement('canvas');
       canvas.width = w;
       canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       resolve(canvas.toDataURL('image/jpeg', quality));
     };
     img.src = dataUrl;
   });
 }
 
-// ===== Lernmodus =====
-function openLearn(marker) {
-  currentLearnMarker = marker;
+/* ===== Lernmodus ===== */
 
-  document.getElementById('learn-marker-title').textContent = marker.title || 'Merkpunkt';
-  document.getElementById('learn-question').classList.remove('hidden');
+function startLearn(marker, wrongOnly) {
+  closeMarkerMenu();
+  learnMarkerId = marker.id;
+  onlyWrongMode = !!wrongOnly;
+
+  let items = (marker.items || []).filter(function (it) {
+    return (it.question && it.question.trim()) || (it.answer && it.answer.trim());
+  });
+  if (wrongOnly) {
+    items = items.filter(function (it) {
+      return it.stats && it.stats.incorrect > 0 && it.stats.mastery < 2;
+    });
+  }
+  if (items.length === 0) {
+    alert(wrongOnly
+      ? 'Keine zu wiederholenden Lernpunkte.'
+      : 'Dieser Merkpunkt hat noch keine Lernpunkte. Bitte zuerst bearbeiten.');
+    return;
+  }
+
+  learnQueue = items.slice();
+  learnIndex = 0;
+  learnKnown = 0;
+  learnUnknown = 0;
+
+  document.getElementById('learn-summary').classList.add('hidden');
+  document.getElementById('learn-question-block').classList.remove('hidden');
   document.getElementById('learn-solution').classList.add('hidden');
-  document.getElementById('learn-actions-question').classList.remove('hidden');
-  document.getElementById('learn-actions-result').classList.add('hidden');
+  showLearnItem();
+  views.learn.classList.add('active');
+}
 
-  // Lösung vorbereiten (noch versteckt)
-  document.getElementById('learn-content').textContent = marker.content || '(kein Inhalt)';
+function showLearnItem() {
+  const item = learnQueue[learnIndex];
+  document.getElementById('learn-progress').textContent =
+    (learnIndex + 1) + ' von ' + learnQueue.length;
+  document.getElementById('learn-question-text').textContent =
+    item.question || 'Was hast du hier gespeichert?';
+  document.getElementById('learn-content').textContent = item.answer || '(keine Antwort)';
   const photoEl = document.getElementById('learn-photo');
-  if (marker.photo) {
-    photoEl.src = marker.photo;
+  if (item.photo) {
+    photoEl.src = item.photo;
     photoEl.classList.remove('hidden');
   } else {
     photoEl.classList.add('hidden');
   }
   const hintEl = document.getElementById('learn-hint');
-  if (marker.hint) {
-    hintEl.textContent = 'Merksatz: ' + marker.hint;
+  if (item.hint) {
+    hintEl.textContent = 'Merksatz: ' + item.hint;
+    hintEl.classList.remove('hidden');
+  } else {
+    hintEl.classList.add('hidden');
+  }
+  document.getElementById('learn-question-block').classList.remove('hidden');
+  document.getElementById('learn-solution').classList.add('hidden');
+  document.getElementById('learn-summary').classList.add('hidden');
+}
+
+function showSolution() {
+  document.getElementById('learn-question-block').classList.add('hidden');
+  document.getElementById('learn-solution').classList.remove('hidden');
+}
+
+async function recordAnswer(knew) {
+  const item = learnQueue[learnIndex];
+  if (!item.stats) {
+    item.stats = { attempts: 0, correct: 0, incorrect: 0, lastReviewed: null, mastery: 0 };
+  }
+  item.stats.attempts += 1;
+  item.stats.lastReviewed = new Date().toISOString();
+  if (knew) {
+    item.stats.correct += 1;
+    item.stats.mastery = Math.min(5, (item.stats.mastery || 0) + 1);
+    learnKnown += 1;
+  } else {
+    item.stats.incorrect += 1;
+    item.stats.mastery = Math.max(0, (item.stats.mastery || 0) - 1);
+    learnUnknown += 1;
+  }
+
+  const marker = currentMarkers.find(function (m) { return m.id === learnMarkerId; });
+  if (marker) {
+    const idx = marker.items.findIndex(function (i) { return i.id === item.id; });
+    if (idx >= 0) marker.items[idx] = item;
+    if (!marker.stats) marker.stats = { timesAsked: 0, timesKnown: 0, timesUnknown: 0, lastAsked: null };
+    marker.stats.timesAsked += 1;
+    if (knew) marker.stats.timesKnown += 1;
+    else marker.stats.timesUnknown += 1;
+    marker.stats.lastAsked = new Date().toISOString();
+    await saveMarker(marker);
+  }
+
+  learnIndex += 1;
+  if (learnIndex >= learnQueue.length) {
+    showLearnSummary();
+  } else {
+    showLearnItem();
+  }
+}
+
+function showLearnSummary() {
+  document.getElementById('learn-question-block').classList.add('hidden');
+  document.getElementById('learn-solution').classList.add('hidden');
+  document.getElementById('learn-summary').classList.remove('hidden');
+  const total = learnKnown + learnUnknown;
+  const pct = total > 0 ? Math.round((learnKnown / total) * 100) : 0;
+  document.getElementById('learn-summary-score').textContent =
+    learnKnown + ' von ' + total + ' gewusst';
+  document.getElementById('learn-summary-pct').textContent = pct + ' %';
+  document.getElementById('learn-progress').textContent = 'Fertig';
+}
+
+function closeLearn() {
+  views.learn.classList.remove('active');
+  learnQueue = [];
+  learnMarkerId = null;
+  if (currentRoomId) {
+    getMarkersByRoom(currentRoomId).then(function (list) {
+      currentMarkers = list;
+      renderMarkers();
+    });
+  }
+}
+
+/* ===== Quiz ===== */
+
+function collectQuizItems(markers) {
+  const items = [];
+  markers.forEach(function (m) {
+    (m.items || []).forEach(function (it) {
+      if (it.useInQuiz && it.answer && it.answer.trim() && it.question && it.question.trim()) {
+        items.push(Object.assign({}, it, { _markerTitle: m.title }));
+      }
+    });
+  });
+  return items;
+}
+
+function startRoomQuiz() {
+  const items = collectQuizItems(currentMarkers);
+  if (items.length === 0) {
+    alert('Keine Quiz-Fragen in diesem Raum.\nAktiviere „Im Quiz verwenden“ bei Lernpunkten und gib falsche Antworten an.');
+    return;
+  }
+  startQuizWithItems(shuffle(items));
+}
+
+function startQuizWithItems(items) {
+  quizQueue = items;
+  quizIndex = 0;
+  quizCorrect = 0;
+  quizWrong = 0;
+  quizWrongItems = [];
+  quizSelected = null;
+
+  document.getElementById('quiz-summary').classList.add('hidden');
+  document.getElementById('quiz-feedback').classList.add('hidden');
+  document.getElementById('quiz-question-block').classList.remove('hidden');
+  showQuizQuestion();
+  views.quiz.classList.add('active');
+}
+
+function showQuizQuestion() {
+  const item = quizQueue[quizIndex];
+  quizSelected = null;
+  document.getElementById('quiz-progress').textContent =
+    'Frage ' + (quizIndex + 1) + ' von ' + quizQueue.length;
+  document.getElementById('quiz-question-text').textContent = item.question;
+  document.getElementById('btn-quiz-check').disabled = true;
+
+  const wrongs = (item.wrongAnswers || []).filter(function (w) { return w && w.trim(); });
+  let options = [item.answer].concat(wrongs);
+  // Falls zu wenige Distraktoren: generische Fülloptionen vermeiden – nur vorhandene nutzen
+  options = uniqueStrings(options);
+  options = shuffle(options);
+
+  const box = document.getElementById('quiz-options');
+  box.innerHTML = '';
+  options.forEach(function (opt, i) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'quiz-option';
+    btn.textContent = opt;
+    btn.dataset.value = opt;
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.quiz-option').forEach(function (b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      quizSelected = opt;
+      document.getElementById('btn-quiz-check').disabled = false;
+    });
+    box.appendChild(btn);
+  });
+
+  document.getElementById('quiz-question-block').classList.remove('hidden');
+  document.getElementById('quiz-feedback').classList.add('hidden');
+  document.getElementById('quiz-summary').classList.add('hidden');
+}
+
+async function checkQuizAnswer() {
+  if (quizSelected == null) return;
+  const item = quizQueue[quizIndex];
+  const correct = quizSelected === item.answer;
+
+  document.querySelectorAll('.quiz-option').forEach(function (btn) {
+    btn.disabled = true;
+    if (btn.dataset.value === item.answer) btn.classList.add('correct');
+    else if (btn.dataset.value === quizSelected && !correct) btn.classList.add('wrong');
+  });
+
+  if (!item.stats) {
+    item.stats = { attempts: 0, correct: 0, incorrect: 0, lastReviewed: null, mastery: 0 };
+  }
+  item.stats.attempts += 1;
+  item.stats.lastReviewed = new Date().toISOString();
+  if (correct) {
+    item.stats.correct += 1;
+    item.stats.mastery = Math.min(5, (item.stats.mastery || 0) + 1);
+    quizCorrect += 1;
+  } else {
+    item.stats.incorrect += 1;
+    item.stats.mastery = Math.max(0, (item.stats.mastery || 0) - 1);
+    quizWrong += 1;
+    quizWrongItems.push(item);
+  }
+
+  // Persistenz: Marker mit diesem Item finden und speichern
+  for (let i = 0; i < currentMarkers.length; i++) {
+    const m = currentMarkers[i];
+    const idx = (m.items || []).findIndex(function (it) { return it.id === item.id; });
+    if (idx >= 0) {
+      m.items[idx].stats = item.stats;
+      await saveMarker(m);
+      break;
+    }
+  }
+
+  const fb = document.getElementById('quiz-feedback-text');
+  fb.textContent = correct ? '✅ Richtig!' : '❌ Leider falsch. Richtig: ' + item.answer;
+  fb.className = correct ? 'feedback-ok' : 'feedback-bad';
+  const hintEl = document.getElementById('quiz-feedback-hint');
+  if (item.hint) {
+    hintEl.textContent = 'Merksatz: ' + item.hint;
     hintEl.classList.remove('hidden');
   } else {
     hintEl.classList.add('hidden');
   }
 
-  views.learn.classList.add('active');
+  document.getElementById('quiz-actions-answer').classList.add('hidden');
+  document.getElementById('quiz-feedback').classList.remove('hidden');
 }
 
-function showSolution() {
-  document.getElementById('learn-question').classList.add('hidden');
-  document.getElementById('learn-solution').classList.remove('hidden');
-  document.getElementById('learn-actions-question').classList.add('hidden');
-  document.getElementById('learn-actions-result').classList.remove('hidden');
+function nextQuizQuestion() {
+  document.getElementById('quiz-actions-answer').classList.remove('hidden');
+  quizIndex += 1;
+  if (quizIndex >= quizQueue.length) showQuizSummary();
+  else showQuizQuestion();
 }
 
-function closeLearn() {
-  views.learn.classList.remove('active');
-  currentLearnMarker = null;
+function showQuizSummary() {
+  document.getElementById('quiz-question-block').classList.add('hidden');
+  document.getElementById('quiz-feedback').classList.add('hidden');
+  document.getElementById('quiz-summary').classList.remove('hidden');
+  const total = quizCorrect + quizWrong;
+  const pct = total > 0 ? Math.round((quizCorrect / total) * 100) : 0;
+  document.getElementById('quiz-summary-score').textContent = quizCorrect + ' / ' + total + ' richtig';
+  document.getElementById('quiz-summary-pct').textContent = pct + ' %';
+  document.getElementById('quiz-summary-detail').innerHTML =
+    '<p>✅ Gewusst: <strong>' + quizCorrect + '</strong></p>' +
+    '<p>❌ Nicht gewusst: <strong>' + quizWrong + '</strong></p>';
+  document.getElementById('quiz-progress').textContent = 'Ergebnis';
+  document.getElementById('btn-quiz-retry-wrong').style.display =
+    quizWrongItems.length > 0 ? 'block' : 'none';
 }
 
-async function recordAnswer(knew) {
-  if (!currentLearnMarker) return;
-
-  const marker = currentLearnMarker;
-  if (!marker.stats) {
-    marker.stats = { timesAsked: 0, timesKnown: 0, timesUnknown: 0, lastAsked: null };
+function closeQuiz() {
+  views.quiz.classList.remove('active');
+  quizQueue = [];
+  if (currentRoomId) {
+    getMarkersByRoom(currentRoomId).then(function (list) {
+      currentMarkers = list;
+      renderMarkers();
+    });
   }
-  marker.stats.timesAsked += 1;
-  if (knew) marker.stats.timesKnown += 1;
-  else marker.stats.timesUnknown += 1;
-  marker.stats.lastAsked = new Date().toISOString();
-
-  await saveMarker(marker);
-
-  // In der lokalen Liste aktualisieren
-  const idx = currentMarkers.findIndex(m => m.id === marker.id);
-  if (idx >= 0) currentMarkers[idx] = marker;
-
-  closeLearn();
 }
 
-// ===== Statistik (einfach) =====
+/* ===== Statistik ===== */
+
 async function renderStats() {
   const rooms = await getAllRooms();
-  let totalAsked = 0;
-  let totalKnown = 0;
-  let totalMarkers = 0;
-  let withContent = 0;
+  const allMarkers = await getAllMarkers();
+  let totalItems = 0;
+  let totalAttempts = 0;
+  let totalCorrect = 0;
+  let totalIncorrect = 0;
+  let toReview = 0;
+  let bestRoom = null;
+  let bestPct = -1;
 
-  for (const room of rooms) {
-    const markers = await getMarkersByRoom(room.id);
-    totalMarkers += markers.length;
-    for (const m of markers) {
-      if (m.content && m.content.trim()) withContent++;
-      if (m.stats) {
-        totalAsked += m.stats.timesAsked || 0;
-        totalKnown += m.stats.timesKnown || 0;
-      }
+  for (let r = 0; r < rooms.length; r++) {
+    const room = rooms[r];
+    const markers = allMarkers.filter(function (m) { return m.roomId === room.id; });
+    let roomItems = 0;
+    let roomMastered = 0;
+    markers.forEach(function (m) {
+      (m.items || []).forEach(function (it) {
+        roomItems += 1;
+        totalItems += 1;
+        if (it.stats) {
+          totalAttempts += it.stats.attempts || 0;
+          totalCorrect += it.stats.correct || 0;
+          totalIncorrect += it.stats.incorrect || 0;
+          if ((it.stats.incorrect || 0) > 0 && (it.stats.mastery || 0) < 2) toReview += 1;
+          if ((it.stats.mastery || 0) >= 2) roomMastered += 1;
+        }
+      });
+    });
+    const pct = roomItems > 0 ? Math.round((roomMastered / roomItems) * 100) : 0;
+    if (roomItems > 0 && pct > bestPct) {
+      bestPct = pct;
+      bestRoom = room.name + ' (' + pct + ' %)';
     }
   }
 
-  const rate = totalAsked > 0 ? Math.round((totalKnown / totalAsked) * 100) : 0;
+  const rate = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
 
-  document.getElementById('stats-content').innerHTML = `
-    <div style="text-align:left; margin-top:24px; line-height:1.8;">
-      <p>🏠 Räume: <strong>${rooms.length}</strong></p>
-      <p>📍 Merkpunkte gesamt: <strong>${totalMarkers}</strong></p>
-      <p>📝 Mit Lerninhalt: <strong>${withContent}</strong></p>
-      <p>🔄 Abfragen: <strong>${totalAsked}</strong></p>
-      <p>✅ Gewusst: <strong>${totalKnown}</strong> (${rate} %)</p>
-    </div>`;
+  document.getElementById('stats-content').innerHTML =
+    '<div class="stat-card"><div class="stat-value">' + rooms.length + '</div><div class="stat-label">Räume</div></div>' +
+    '<div class="stat-card"><div class="stat-value">' + allMarkers.length + '</div><div class="stat-label">Merkpunkte</div></div>' +
+    '<div class="stat-card"><div class="stat-value">' + totalItems + '</div><div class="stat-label">Lernpunkte</div></div>' +
+    '<div class="stat-card"><div class="stat-value">' + totalAttempts + '</div><div class="stat-label">Abfragen</div></div>' +
+    '<div class="stat-card wide"><div class="stat-value success">' + rate + ' %</div><div class="stat-label">Trefferquote</div></div>' +
+    '<div class="stat-card"><div class="stat-value success">' + totalCorrect + '</div><div class="stat-label">Gewusst</div></div>' +
+    '<div class="stat-card"><div class="stat-value">' + totalIncorrect + '</div><div class="stat-label">Nicht gewusst</div></div>' +
+    '<div class="stat-card wide"><div class="stat-value">' + (bestRoom || '–') + '</div><div class="stat-label">🏆 Bester Raum</div></div>' +
+    '<div class="stat-card wide"><div class="stat-value">' + toReview + '</div><div class="stat-label">🧠 Zu wiederholen</div></div>';
 }
 
-// ===== Einstellungen =====
+/* ===== Backup ===== */
+
 async function exportData() {
-  try {
-    const data = await exportAllData();
-    const blob = new Blob(
-      [JSON.stringify(data, null, 2)],
-      { type: 'application/json' }
-    );
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `memoryrooms-backup-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    // URL erst nach dem Klick freigeben.
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    alert('Backup wurde erstellt.');
-  } catch (err) {
-    console.error('Exportfehler:', err);
-    alert('Backup konnte nicht erstellt werden.');
-  }
+  const data = await exportAllData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'memoryrooms-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-/**
- * Backup-Datei vom Gerät auswählen und importieren.
- */
-async function handleImportFile(event) {
-  const file = event.target.files[0];
-  event.target.value = '';
-
+async function importData(e) {
+  const file = e.target.files[0];
   if (!file) return;
-
   try {
     const text = await file.text();
     const data = JSON.parse(text);
-
-    if (data.app !== 'MemoryRooms' || !Array.isArray(data.rooms) || !Array.isArray(data.markers)) {
-      throw new Error('Ungültiges MemoryRooms-Backup.');
+    if (!confirm('Backup wiederherstellen? Die aktuell gespeicherten MemoryRooms-Daten auf diesem Gerät werden durch den Backup-Stand ersetzt.\n\nWenn du unsicher bist, zuerst ein Backup exportieren.')) {
+      e.target.value = '';
+      return;
     }
-
-    const roomCount = data.rooms.length;
-    const markerCount = data.markers.length;
-
-    const confirmed = confirm(
-      `Backup importieren?\n\n` +
-      `${roomCount} Räume\n` +
-      `${markerCount} Merkpunkte\n\n` +
-      `ACHTUNG: Der aktuelle lokale Datenbestand wird durch das Backup ersetzt.`
-    );
-
-    if (!confirmed) return;
-
-    // Zweite Sicherheitsabfrage, weil der Import vorhandene Daten ersetzt.
-    const confirmedAgain = confirm(
-      'Letzte Sicherheitsabfrage:\n\n' +
-      'Hast du ein aktuelles Backup deiner jetzigen Daten?\n\n' +
-      'OK = Backup importieren'
-    );
-
-    if (!confirmedAgain) return;
-
-    await importAllData(data);
-
+    const result = await restoreAllData(data);
     currentRoomId = null;
     currentMarkers = [];
-    currentLearnMarker = null;
-
-    await ensureDemoRoom();
     await renderRoomList();
     showView('rooms');
-
-    alert('Backup erfolgreich importiert.');
+    alert('Import erfolgreich: ' + result.rooms + ' Räume, ' + result.markers + ' Merkpunkte.');
   } catch (err) {
-    console.error('Importfehler:', err);
-    alert('Backup konnte nicht importiert werden. Die vorhandenen Daten wurden nicht verändert.');
+    console.error(err);
+    alert('Import fehlgeschlagen: ' + (err.message || 'Ungültige Datei'));
   }
+  e.target.value = '';
 }
 
 async function clearData() {
   if (!confirm('Wirklich ALLE Daten unwiderruflich löschen?')) return;
-  if (!confirm('Sicher? Es gibt kein Zurück.')) return;
+  if (!confirm('Sicher? Es gibt kein Zurück (außer einem Backup).')) return;
   await clearAllData();
   currentRoomId = null;
   currentMarkers = [];
   await ensureDemoRoom();
   await renderRoomList();
   showView('rooms');
-  alert('Alle Daten wurden gelöscht. Demo-Raum neu angelegt.');
+  alert('Alle Daten gelöscht. Demo-Raum neu angelegt.');
 }
 
-// ===== Hilfsfunktionen =====
+/* ===== Helpers ===== */
+
 function escapeHtml(str) {
   if (!str) return '';
-  return str
+  return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function truncate(s, n) {
+  if (!s) return '';
+  return s.length > n ? s.slice(0, n) + '…' : s;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i];
+    a[i] = a[j];
+    a[j] = t;
+  }
+  return a;
+}
+
+function uniqueStrings(arr) {
+  const seen = {};
+  return arr.filter(function (x) {
+    const k = String(x);
+    if (seen[k]) return false;
+    seen[k] = true;
+    return true;
+  });
 }
