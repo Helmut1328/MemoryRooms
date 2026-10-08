@@ -145,6 +145,13 @@ function setupEventListeners() {
     showView('rooms');
     renderRoomList();
   });
+  document.getElementById('btn-back-rooms-top').addEventListener('click', function () {
+    showView('rooms');
+    renderRoomList();
+  });
+  document.getElementById('btn-room-info').addEventListener('click', function () {
+    alert('Merkpunkte sind deine Gedächtnisanker. Tippe auf einen Ort, um Lernpunkte zu lernen oder zu bearbeiten.');
+  });
   document.getElementById('btn-add-marker').addEventListener('click', function () {
     openEditMarker(null);
   });
@@ -284,9 +291,13 @@ async function openRoom(roomId) {
   if (!room) return;
 
   headerTitle.textContent = room.name;
-  headerSubtitle.textContent = 'Tippe auf einen Merkpunkt';
+  headerSubtitle.textContent = 'Dein Gedächtnisraum';
+  const roomTitle = document.getElementById('room-view-title');
+  if (roomTitle) roomTitle.textContent = room.name;
 
   currentMarkers = await getMarkersByRoom(roomId);
+  const roomMarkerCount = document.getElementById('room-marker-count');
+  if (roomMarkerCount) roomMarkerCount.textContent = currentMarkers.length + (currentMarkers.length === 1 ? ' Ort' : ' Orte');
   renderMarkers();
   showView('room');
 }
