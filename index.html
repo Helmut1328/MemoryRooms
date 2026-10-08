@@ -1,356 +1,159 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#f5efe6">
-  <meta name="description" content="MemoryRooms – Lernen mit dem Memory-Palace-Prinzip">
-  <title>MemoryRooms</title>
-  <link rel="stylesheet" href="styles.css?v=11">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#f5efe6">
+<title>MemoryRooms v12</title>
+<style>
+:root{--paper:#fffaf3;--bg:#f5efe6;--ink:#332a23;--muted:#76695d;--line:#ded1c1;--blue:#2376d8;--green:#2f8b4b;--red:#b94338;--shadow:0 14px 40px rgba(55,38,22,.14);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+button,input,textarea{font:inherit}button{cursor:pointer}#app{min-height:100vh;padding-top:var(--safe-top);padding-bottom:calc(76px + var(--safe-bottom))}
+header{padding:18px 18px 12px;max-width:1100px;margin:auto}.brand{display:flex;gap:12px;align-items:center}.brand-icon{font-size:30px}.brand h1{font-size:23px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
+main{max-width:1100px;margin:auto;padding:0 14px}.view{display:none}.view.active{display:block}
+.panel,.room-card,.modal-card{background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.panel{padding:18px;margin:12px 0}.room-list{display:grid;gap:12px}.room-card{display:flex;gap:12px;align-items:center;padding:12px;position:relative}.room-card-photo,.room-thumb{width:82px;height:66px;border-radius:14px;object-fit:cover;background:#e9dfd3;flex:none}.room-card-icon{width:82px;height:66px;border-radius:14px;display:grid;place-items:center;background:#e9dfd3;font-size:34px;flex:none}.room-info{min-width:0;padding-right:38px}.room-info h2{font-size:16px;margin:0 0 5px}.meta{font-size:11px;color:var(--muted)}.room-menu{position:absolute;right:10px;top:10px;border:0;background:transparent;font-size:24px;color:var(--muted)}
+.btn{border:0;border-radius:15px;padding:13px 16px;font-weight:800;touch-action:manipulation}.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:#eee5da;color:var(--ink)}.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}.btn-ghost{background:transparent;color:var(--muted)}.btn-theme{background:#493c31;color:#fff}.full{width:100%}.actions{display:grid;gap:8px;margin-top:12px}.actions.two{grid-template-columns:1fr 1fr}
+.room-create{display:grid;gap:9px;margin:14px 0}.room-create .btn{width:100%}
+.room-head{display:flex;gap:10px;align-items:center;margin:8px 0}.room-head button{border:0;background:transparent;font-size:28px}.room-head h2{margin:0;font-size:20px}.room-head p{margin:2px 0;color:var(--muted);font-size:11px}
+.room-wrap{position:relative;overflow:hidden;border-radius:24px;border:1px solid #cdbda9;background:#cdbda9;box-shadow:var(--shadow);min-height:58vh}.room-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.room-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,10,0,.08),rgba(20,10,0,.15))}
+.marker{position:absolute;transform:translate(-50%,-50%);z-index:5;min-width:64px;max-width:130px;padding:4px 7px;background:rgba(255,255,255,.94);border:2px solid var(--blue);border-radius:13px;box-shadow:0 6px 18px rgba(30,20,10,.28);text-align:center;font-size:10px;font-weight:800}.marker img{width:38px;height:38px;border-radius:9px;object-fit:cover;display:block;margin:auto}.marker .num{display:block;font-size:18px;color:var(--blue)}.marker .count{display:inline-block;margin-left:4px;background:var(--blue);color:#fff;border-radius:10px;padding:1px 5px;font-size:9px}.thought{position:absolute;z-index:6;width:44px;height:44px;border:3px solid #fff;border-radius:12px;box-shadow:0 5px 15px rgba(30,20,10,.3);overflow:hidden;background:#fff}.thought img{width:100%;height:100%;object-fit:cover}
+.room-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.room-tools .btn{background:var(--paper)}
+.overlay{position:fixed;z-index:50;inset:0;background:rgba(30,20,12,.42);backdrop-filter:blur(7px);display:none;align-items:flex-end;justify-content:center;padding-top:var(--safe-top)}.overlay.active{display:flex}.modal-card{width:min(760px,100%);max-height:calc(100vh - 10px);overflow:auto;padding:18px;border-radius:25px 25px 0 0;padding-bottom:calc(22px + var(--safe-bottom))}
+.modal-card h2{margin:0 0 14px}.eyebrow{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:900}.field{display:grid;gap:6px;margin:12px 0;font-size:12px;font-weight:800}.field input,.field textarea,.answer-input{width:100%;border:1px solid var(--line);border-radius:14px;background:#fffdf9;padding:12px;color:var(--ink);font-size:16px}.field textarea{min-height:80px;resize:vertical}
+.item-card{border:1px solid var(--line);border-radius:17px;padding:11px;margin:9px 0;background:#fffdf9}.item-head{display:flex;justify-content:space-between;gap:8px}.item-card small{color:var(--muted)}.item-delete{border:0;background:transparent;color:var(--red)}
+.learn-card{width:min(700px,100%);max-height:calc(100vh - 10px);overflow:auto;background:var(--paper);border-radius:25px;padding:20px 18px calc(24px + var(--safe-bottom));box-shadow:var(--shadow)}.learn-anchor{display:flex;gap:10px;align-items:center}.learn-anchor img{width:55px;height:55px;border-radius:14px;object-fit:cover}.progress{text-align:right;color:var(--muted);font-size:11px;margin:8px 0}.prompt{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:900}.learn-q{font-size:23px;line-height:1.22;font-weight:850;margin:8px 0 16px}.answer-box{padding:14px;background:#f7efe5;border:1px solid var(--line);border-radius:18px}.solution{margin-top:12px;padding:15px;border:1px solid #d5c4b1;border-radius:18px;background:#fffdf9}.solution-answer{font-size:21px;font-weight:900}.hint{margin-top:10px;padding:10px 12px;border-radius:13px;background:#eef6ff;color:#34516e;font-size:12px}.feedback{padding:12px;border-radius:14px;margin-top:10px;font-weight:800}.feedback.ok{background:#e7f5eb;color:#216b36}.feedback.bad{background:#fff0ed;color:#94372e}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{padding:15px;border:1px solid var(--line);border-radius:17px;background:#fffdf9}.stat strong{font-size:24px;display:block}.stat span{font-size:11px;color:var(--muted)}
+nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px + var(--safe-bottom));background:rgba(255,250,243,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;gap:5px}nav button{border:0;background:transparent;border-radius:14px;padding:7px 12px;color:var(--muted);font-size:11px}nav button.active{background:#e9e0d5;color:var(--ink);font-weight:900}
+.hidden{display:none!important}.muted{color:var(--muted)}.danger{color:var(--red)}
+@media(min-width:760px){#app{padding-bottom:30px}nav{position:static;max-width:700px;margin:18px auto;border:1px solid var(--line);border-radius:18px}.room-create{grid-template-columns:1fr 1fr}.modal-card{border-radius:25px;margin-bottom:20px}.overlay{align-items:center}.room-wrap{min-height:680px}.stats-grid{grid-template-columns:repeat(4,1fr)}}
+</style>
 </head>
 <body>
-  <div id="app">
-    <header class="header">
-      <div class="header-brand">
-        <div class="brand-mark">🧠</div>
-        <div>
-          <h1 id="header-title">MemoryRooms</h1>
-          <p id="header-subtitle" class="subtitle">Dein virtueller Gedächtnisraum</p>
-        </div>
-      </div>
-      <div class="header-glow"></div>
-    </header>
-
-    <main id="main-content">
-      <!-- Räume -->
-      <section id="view-rooms" class="view active">
-        <div class="room-list" id="room-list"></div>
-        <button id="btn-add-room" class="btn btn-primary btn-large" type="button">+ Neuen Raum erstellen</button>
-      </section>
-
-      <!-- Raum mit Merkpunkten -->
-      <section id="view-room" class="view room-view">
-        <div class="room-toolbar">
-          <button id="btn-back-rooms-top" class="icon-button" type="button" aria-label="Zurück zu den Räumen">‹</button>
-          <div><h2 id="room-view-title">Wohnzimmer</h2><p class="room-tip">Dein Gedächtnisraum</p></div>
-          <button id="btn-room-info" class="icon-button" type="button" aria-label="Hinweis">i</button>
-        </div>
-        <div class="room-intro-line"><span>📍 Merkpunkte als Gedächtnisanker</span><span id="room-marker-count">0 Orte</span></div>
-        <div class="room-container">
-          <div class="room-background" id="room-bg">
-            <img class="room-photo-bg" id="room-photo-bg" src="room-livingroom.jpg?v=11" alt="Gedächtnisraum">
-            <div class="room-photo-shade"></div>
-          </div>
-          <div id="markers-layer"></div>
-        </div>
-        <aside class="room-side-panel" id="room-side-panel">
-          <div class="side-panel-head">
-            <div>
-              <span class="eyebrow">AKTUELLER GEDÄCHTNISANKER</span>
-              <h3 id="side-marker-title">Noch keinen Merkpunkt ausgewählt</h3>
-            </div>
-            <span class="side-marker-badge" id="side-marker-count">—</span>
-          </div>
-          <p id="side-marker-desc" class="side-marker-desc">Tippe auf einen Ort im Raum. Dort kannst du beliebig viele Lernpunkte hinterlegen.</p>
-          <div id="side-marker-photo-wrap" class="side-marker-photo-wrap hidden">
-            <img id="side-marker-photo" alt="Foto des Merkpunkts">
-          </div>
-          <div class="side-panel-actions">
-            <button id="btn-side-learn" class="btn btn-primary" type="button" disabled>🧠 Lernen</button>
-            <button id="btn-side-edit" class="btn btn-secondary" type="button" disabled>✏️ Bearbeiten</button>
-          </div>
-          <div class="side-tip"><strong>💡 So funktioniert es</strong><span>Ort merken → Frage beantworten → Lösung sehen → Gedankenstütze einprägen</span></div>
-        </aside>
-        <div class="room-bottom-bar">
-          <button id="btn-quiz-room" class="room-action-card accent" type="button"><span>🎯</span><div><strong>Raum-Quiz</strong><small>Alles Gelernte abfragen</small></div></button>
-          <button id="btn-add-marker" class="room-action-card" type="button"><span>＋</span><div><strong>Merkpunkt hinzufügen</strong><small>Ort als Gedächtnisanker</small></div></button>
-          <button id="btn-room-map" class="room-action-card" type="button"><span>🗺️</span><div><strong>Raumplan</strong><small>Rundgang durch die Merkpunkte</small></div></button>
-        </div>
-        <button id="btn-back-rooms" class="room-back-link" type="button">← Zurück zu meinen Räumen</button>
-      </section>
-
-      <!-- Raum-Editor -->
-      <section id="view-edit-room" class="view overlay">
-        <div class="edit-card">
-          <h2 id="room-edit-title">Raum bearbeiten</h2>
-          <label>Raumname
-            <input type="text" id="input-room-name" placeholder="z. B. Wohnzimmer" maxlength="50" autocomplete="off">
-          </label>
-          <div class="room-preset-section">
-            <div class="room-preset-head"><strong>Raumvorlage</strong><small>Oder verwende dein eigenes Foto</small></div>
-            <div id="room-preset-grid" class="room-preset-grid">
-              <button type="button" class="room-preset-card" data-preset="livingroom"><span>🛋️</span><strong>Wohnzimmer</strong></button>
-              <button type="button" class="room-preset-card" data-preset="kitchen"><span>🍳</span><strong>Küche</strong></button>
-              <button type="button" class="room-preset-card" data-preset="bedroom"><span>🛏️</span><strong>Schlafzimmer</strong></button>
-              <button type="button" class="room-preset-card" data-preset="office"><span>💻</span><strong>Büro</strong></button>
-              <button type="button" class="room-preset-card" data-preset="workshop"><span>🔨</span><strong>Werkstatt</strong></button>
-              <button type="button" class="room-preset-card" data-preset="garden"><span>🌿</span><strong>Garten</strong></button>
-            </div>
-          </div>
-          <label class="photo-label">Eigenes Raumfoto <small>optional · ideal ist ein Foto deines echten Raums</small>
-            <input type="file" id="input-room-photo" accept="image/*">
-            <div id="room-photo-preview" class="photo-preview room-photo-preview hidden">
-              <img id="room-photo-preview-img" alt="Vorschau des Raumfotos">
-              <button type="button" id="btn-remove-room-photo" class="btn-remove-photo" aria-label="Raumfoto entfernen">✕</button>
-            </div>
-          </label>
-          <div class="room-photo-help">📷 <strong>Tipp:</strong> Fotografiere deinen echten Raum. Die Merkpunkte kannst du anschließend direkt auf dem Foto platzieren.</div>
-          <div class="edit-actions">
-            <button id="btn-save-room" class="btn btn-primary btn-large" type="button">Speichern</button>
-            <button id="btn-delete-room" class="btn btn-danger btn-large hidden" type="button">Raum löschen</button>
-            <button id="btn-cancel-room" class="btn btn-ghost btn-large" type="button">Abbrechen</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Merkpunkt-Menü: Lernen / Bearbeiten -->
-      <section id="view-marker-menu" class="view overlay">
-        <div class="learn-card">
-          <p class="marker-title" id="menu-marker-title">Tisch</p>
-          <p class="menu-desc" id="menu-marker-desc"></p>
-          <p class="menu-meta" id="menu-marker-meta"></p>
-          <div id="menu-marker-photo-wrap" class="menu-marker-photo-wrap hidden">
-            <img id="menu-marker-photo" class="menu-marker-photo" alt="Bild des Merkpunkts">
-            <span>Gedankenstütze zum Ort</span>
-          </div>
-          <p class="menu-help">Hier kannst du den Merkpunkt ändern oder seine Lernpunkte bearbeiten.</p>
-          <div class="learn-actions">
-            <button id="btn-menu-learn" class="btn btn-primary btn-large" type="button">🧠 Lernen</button>
-            <button id="btn-menu-edit" class="btn btn-secondary btn-large" type="button">✏️ Bearbeiten</button>
-            <button id="btn-menu-close" class="btn btn-ghost" type="button">Schließen</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Schematischer Raumplan / Laufweg -->
-      <section id="view-room-map" class="view overlay">
-        <div class="map-card">
-          <div class="map-head">
-            <div><span class="eyebrow">GEDÄCHTNISWEG</span><h2>Dein Rundgang</h2><p>Die Nummern zeigen die Reihenfolge. Mit ▲▼ kannst du deinen persönlichen Laufweg festlegen.</p></div>
-            <button id="btn-close-room-map" class="icon-button" type="button" aria-label="Raumplan schließen">✕</button>
-          </div>
-          <div class="route-map" id="route-map" aria-label="Schematischer Raumplan"></div>
-          <div class="route-legend" id="route-legend"></div>
-          <div class="route-actions">
-            <button id="btn-start-room-walk" class="btn btn-primary btn-large" type="button">🚶 Rundgang starten</button>
-            <button id="btn-close-room-map-bottom" class="btn btn-ghost" type="button">Schließen</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Lernmodus (Unterpunkte nacheinander) -->
-      <section id="view-learn" class="view overlay">
-        <div class="learn-card" id="learn-card">
-          <div class="learn-place" id="learn-place-wrap"><img id="learn-place-photo" class="hidden" alt="Gedächtnisanker"><div><span class="eyebrow">GEDÄCHTNISANKER</span><strong id="learn-place-title">Merkpunkt</strong></div></div>
-          <div id="learn-progress" class="learn-progress">1 von 4</div>
-          <div id="learn-question-block">
-            <p class="prompt">JETZT AUS DEM GEDÄCHTNIS</p>
-            <p class="learn-q" id="learn-question-text"></p>
-            <div class="learn-actions" id="learn-actions-question">
-              <button id="btn-show-solution" class="btn btn-primary btn-large" type="button">Lösung anzeigen</button>
-              <button id="btn-close-learn" class="btn btn-ghost" type="button">Abbrechen</button>
-            </div>
-          </div>
-          <div id="learn-solution" class="learn-solution hidden">
-            <p class="content" id="learn-content"></p>
-            <img id="learn-photo" class="learn-photo hidden" alt="Merkhilfe">
-            <div class="thought-card" id="learn-hint"></div>
-            <div class="learn-actions" id="learn-actions-result">
-              <button id="btn-knew" class="btn btn-success btn-large" type="button">✅ Gewusst</button>
-              <button id="btn-not-knew" class="btn btn-danger btn-large" type="button">❌ Nicht gewusst</button>
-            </div>
-          </div>
-          <div id="learn-summary" class="learn-summary hidden">
-            <div class="summary-icon">🎉</div>
-            <h2 id="learn-summary-title">Merkpunkt abgeschlossen</h2>
-            <p class="summary-score" id="learn-summary-score"></p>
-            <p class="summary-pct" id="learn-summary-pct"></p>
-            <div class="learn-actions">
-              <button id="btn-learn-again" class="btn btn-primary btn-large" type="button">Nochmal lernen</button>
-              <button id="btn-learn-done" class="btn btn-ghost btn-large" type="button">Fertig</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Quiz-Modus -->
-      <section id="view-quiz" class="view overlay">
-        <div class="learn-card" id="quiz-card">
-          <div id="quiz-progress" class="learn-progress">Frage 1 von 10</div>
-          <div id="quiz-question-block">
-            <p class="learn-q" id="quiz-question-text"></p>
-            <div id="quiz-options" class="quiz-options"></div>
-            <div class="learn-actions" id="quiz-actions-answer">
-              <button id="btn-quiz-check" class="btn btn-primary btn-large" type="button" disabled>Antwort prüfen</button>
-              <button id="btn-quiz-abort" class="btn btn-ghost" type="button">Abbrechen</button>
-            </div>
-          </div>
-          <div id="quiz-feedback" class="quiz-feedback hidden">
-            <p id="quiz-feedback-text"></p>
-            <div class="thought-card" id="quiz-feedback-hint"></div>
-            <div class="learn-actions">
-              <button id="btn-quiz-next" class="btn btn-primary btn-large" type="button">Weiter</button>
-            </div>
-          </div>
-          <div id="quiz-summary" class="learn-summary hidden">
-            <div class="summary-icon">🎯</div>
-            <h2>Quiz abgeschlossen</h2>
-            <p class="summary-score" id="quiz-summary-score"></p>
-            <p class="summary-pct" id="quiz-summary-pct"></p>
-            <div class="summary-detail" id="quiz-summary-detail"></div>
-            <div class="learn-actions">
-              <button id="btn-quiz-retry-wrong" class="btn btn-secondary btn-large" type="button">Falsche wiederholen</button>
-              <button id="btn-quiz-restart" class="btn btn-primary btn-large" type="button">Quiz erneut starten</button>
-              <button id="btn-quiz-done" class="btn btn-ghost btn-large" type="button">Zurück zum Raum</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Merkpunkt-Editor mit Lernpunkten -->
-      <section id="view-edit-marker" class="view overlay">
-        <div class="edit-card edit-card-wide">
-          <h2 id="edit-title">Merkpunkt bearbeiten</h2>
-
-          <label>Titel
-            <input type="text" id="input-marker-title" placeholder="Tisch, Sofa, Fenster …" maxlength="40" autocomplete="off">
-          </label>
-          <label>Beschreibung (optional)
-            <input type="text" id="input-marker-desc" placeholder="z. B. Informationen über Frankreich" maxlength="120" autocomplete="off">
-          </label>
-          <label class="photo-label">Foto zum Merkpunkt – deine visuelle Gedankenstütze (optional)
-            <input type="file" id="input-marker-photo" accept="image/*">
-            <div id="photo-preview" class="photo-preview hidden">
-              <img id="photo-preview-img" alt="Vorschau">
-              <button type="button" id="btn-remove-photo" class="btn-remove-photo" aria-label="Foto entfernen">✕</button>
-            </div>
-          </label>
-
-          <div class="editor-section">
-            <div class="editor-section-head">
-              <h3>Lernpunkte</h3>
-              <button type="button" id="btn-add-item" class="btn btn-secondary btn-sm">+ Lernpunkt</button>
-            </div>
-            <div id="items-list" class="items-list"></div>
-          </div>
-
-          <div class="edit-actions">
-            <button id="btn-save-marker" class="btn btn-primary btn-large" type="button">Speichern</button>
-            <button id="btn-delete-marker" class="btn btn-danger hidden" type="button">Löschen</button>
-            <button id="btn-cancel-edit" class="btn btn-ghost" type="button">Abbrechen</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Einzelnen Lernpunkt bearbeiten -->
-      <section id="view-edit-item" class="view overlay">
-        <div class="edit-card">
-          <h2 id="item-edit-title">Lernpunkt</h2>
-          <div class="field-note">Du brauchst <strong>Titel ODER Frage</strong> – beides zusammen ist nicht nötig.</div>
-          <label>Titel <small>optional</small>
-            <input type="text" id="input-item-title" placeholder="z. B. Hauptstadt von Frankreich" maxlength="100" autocomplete="off">
-          </label>
-          <label>Frage <small>optional</small>
-            <input type="text" id="input-item-question" placeholder="z. B. Wie heißt die Hauptstadt?" maxlength="200" autocomplete="off">
-          </label>
-          <label>Antwort / Lösung
-            <textarea id="input-item-answer" placeholder="Paris" rows="2"></textarea>
-          </label>
-          <label>Gedankenstütze / Eselsbrücke <small>erst nach der Antwort sichtbar</small>
-            <input type="text" id="input-item-hint" placeholder="z. B. Paris → Eiffelturm → Frankreich" maxlength="120" autocomplete="off">
-          </label>
-          <label class="photo-label">Foto als zusätzliche Gedankenstütze (optional)
-            <input type="file" id="input-item-photo" accept="image/*">
-            <div id="item-photo-preview" class="photo-preview hidden">
-              <img id="item-photo-preview-img" alt="Vorschau">
-              <button type="button" id="btn-remove-item-photo" class="btn-remove-photo">✕</button>
-            </div>
-          </label>
-          <label class="check-label">
-            <input type="checkbox" id="input-item-quiz" checked>
-            Im Quiz verwenden
-          </label>
-          <label class="check-label room-photo-toggle">
-            <input type="checkbox" id="input-item-room-photo">
-            Foto im Raum als kleine Gedankenstütze anzeigen
-          </label>
-          <div id="quiz-wrong-block">
-            <p class="field-hint">Falsche Antworten fürs Quiz (optional)</p>
-            <input type="text" id="input-wrong-1" placeholder="Falsche Antwort 1" maxlength="80" autocomplete="off">
-            <input type="text" id="input-wrong-2" placeholder="Falsche Antwort 2" maxlength="80" autocomplete="off">
-            <input type="text" id="input-wrong-3" placeholder="Falsche Antwort 3" maxlength="80" autocomplete="off">
-          </div>
-          <div class="edit-actions">
-            <button id="btn-save-item" class="btn btn-primary btn-large" type="button">Übernehmen</button>
-            <button id="btn-delete-item" class="btn btn-danger hidden" type="button">Lernpunkt löschen</button>
-            <button id="btn-cancel-item" class="btn btn-ghost" type="button">Abbrechen</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Statistik -->
-      <section id="view-stats" class="view">
-        <div class="stats-panel">
-          <h2 class="panel-title">📊 Mein Lernfortschritt</h2>
-          <p class="panel-desc">Alles lokal auf diesem Gerät</p>
-          <div id="stats-content" class="stats-grid"></div>
-        </div>
-      </section>
-
-      <!-- Einstellungen -->
-      <section id="view-settings" class="view">
-        <div class="settings-panel">
-          <h2 class="panel-title">⚙️ Einstellungen</h2>
-          <p class="panel-desc">Backup & Daten – bleiben auf deinem Gerät</p>
-          <div class="settings-hero">
-            <div class="settings-icon">🧠</div>
-            <div><h2>Deine Standard-Abfrage</h2><p>Diese Einstellungen gelten für „Lernen“ und bestimmen, wie groß deine nächste Lernrunde ist.</p><strong id="settings-summary" class="settings-summary"></strong></div>
-          </div>
-
-          <div class="settings-group learning-settings">
-            <h3>Was soll abgefragt werden?</h3>
-            <label class="setting-field"><span>Abfragebasis</span><select id="setting-filter"><option value="all">Alle Lernpunkte</option><option value="quiz">Nur fürs Quiz freigegebene Lernpunkte</option><option value="wrong">Nur zu wiederholende Lernpunkte</option></select></label>
-            <label class="setting-field"><span>Umfang pro Lernrunde</span><select id="setting-count"><option value="5">5 Lernpunkte</option><option value="10">10 Lernpunkte</option><option value="20">20 Lernpunkte</option><option value="all">Alle passenden Lernpunkte</option></select></label>
-            <label class="setting-field"><span>Bereich</span><select id="setting-scope"><option value="current">Aktueller Raum</option><option value="all">Alle Räume</option></select></label>
-            <label class="toggle-row"><span><strong>Zufällige Reihenfolge</strong><small>Jede Lernrunde mischt die ausgewählten Lernpunkte.</small></span><input type="checkbox" id="setting-shuffle"></label>
-            <button id="btn-start-configured-learning" class="btn btn-primary btn-large" type="button">🧠 Lernrunde jetzt starten</button>
-          </div>
-
-          <div class="settings-group">
-            <h3>Datensicherung</h3>
-            <button id="btn-export-data" class="btn btn-secondary btn-large" type="button">Backup exportieren (JSON)</button>
-            <label class="btn btn-secondary btn-large file-btn">
-              Backup importieren
-              <input type="file" id="input-import-data" accept="application/json,.json" hidden>
-            </label>
-          </div>
-          <div class="settings-group danger-zone">
-            <h3>Gefahrenzone</h3>
-            <button id="btn-clear-data" class="btn btn-danger btn-large" type="button">Alle Daten löschen</button>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <nav class="bottom-nav">
-      <button class="nav-btn active" data-view="rooms" type="button">
-        <span class="nav-icon">🏠</span><span class="nav-label">Räume</span>
-      </button>
-      <button class="nav-btn" data-view="room" type="button">
-        <span class="nav-icon">🧠</span><span class="nav-label">Lernen</span>
-      </button>
-      <button class="nav-btn" data-view="stats" type="button">
-        <span class="nav-icon">📊</span><span class="nav-label">Statistik</span>
-      </button>
-      <button class="nav-btn" data-view="settings" type="button">
-        <span class="nav-icon">⚙️</span><span class="nav-label">Einstellungen</span>
-      </button>
-    </nav>
+<div id="app">
+<header><div class="brand"><div class="brand-icon">🧠</div><div><h1 id="headerTitle">MemoryRooms</h1><p id="headerSub">Dein virtueller Gedächtnisraum</p></div></div></header>
+<main>
+<section id="rooms" class="view active">
+  <div id="roomList" class="room-list"></div>
+  <div class="room-create">
+    <button class="btn btn-primary" id="newRoom">+ Neuen Raum erstellen</button>
+    <button class="btn btn-theme" id="themeRoom">🎯 Themenraum: Deutsche Bundesländer</button>
   </div>
+</section>
 
-  <script src="db.js?v=11"></script>
-  <script src="app.js?v=11"></script>
+<section id="room" class="view">
+  <div class="room-head"><button id="backRooms">‹</button><div><h2 id="roomTitle"></h2><p id="roomSub"></p></div></div>
+  <div class="room-wrap" id="roomWrap"><img id="roomBg" class="room-bg" src="room-livingroom.jpg" alt=""><div class="room-shade"></div><div id="markers"></div></div>
+  <div class="room-tools">
+    <button class="btn" id="walkBtn">🚶 Rundgang</button><button class="btn" id="addMarker">＋ Merkpunkt</button>
+  </div>
+  <div class="actions two"><button class="btn btn-secondary" id="editRoom">✏️ Raum bearbeiten</button><button class="btn btn-secondary" id="roomStats">📊 Statistik</button></div>
+</section>
+
+<section id="stats" class="view"><div class="panel"><h2>📊 Lernfortschritt</h2><div id="statsGrid" class="stats-grid"></div></div></section>
+<section id="settings" class="view"><div class="panel"><h2>⚙️ Einstellungen & Backup</h2><p class="muted">Alle Daten bleiben lokal auf diesem Gerät.</p><div class="actions"><button class="btn btn-secondary" id="export">Backup exportieren</button><label class="btn btn-secondary" style="text-align:center">Backup importieren<input id="import" type="file" accept=".json,application/json" hidden></label><button class="btn btn-danger" id="clear">Alle Daten löschen</button></div></div></section>
+</main>
+
+<nav>
+<button data-view="rooms" class="active">🏠<br>Räume</button><button data-view="room">🧠<br>Lernen</button><button data-view="stats">📊<br>Statistik</button><button data-view="settings">⚙️<br>Einstellungen</button>
+</nav>
+
+<div class="overlay" id="learnOverlay"><div class="learn-card">
+  <div class="learn-anchor"><img id="learnPhoto" class="hidden"><div><span class="eyebrow">GEDÄCHTNISANKER</span><strong id="learnAnchor"></strong></div></div>
+  <div id="learnProgress" class="progress"></div><p class="prompt" id="learnPrompt">JETZT AUS DEM GEDÄCHTNIS</p><div class="learn-q" id="learnQuestion"></div>
+  <div id="normalLearn"><div class="actions"><button class="btn btn-primary" id="showSolution">Lösung anzeigen</button><button class="btn btn-ghost" id="closeLearn">Abbrechen</button></div></div>
+  <div id="themeLearn" class="hidden"><div class="answer-box"><label class="field" style="margin:0"><span>Deine Antwort</span><input class="answer-input" id="themeAnswer" placeholder="Bundesland – Hauptstadt" autocomplete="off"></label><button class="btn btn-primary full" id="checkTheme" style="margin-top:9px">Antwort prüfen</button></div><button class="btn btn-ghost full" id="closeTheme">Abbrechen</button></div>
+  <div id="solution" class="solution hidden"><div class="eyebrow">LÖSUNG</div><div class="solution-answer" id="solutionText"></div><div id="solutionPhotoWrap"></div><div class="hint hidden" id="solutionHint"></div><div class="feedback hidden" id="feedback"></div><div class="actions two"><button class="btn btn-success" id="knew">✅ Gewusst</button><button class="btn btn-danger" id="notKnew">❌ Nicht gewusst</button><button class="btn btn-primary hidden" id="themeNext">Weiter</button></div></div>
+  <div id="learnDone" class="hidden"><div style="font-size:40px;text-align:center">🎉</div><h2 id="doneTitle">Rundgang abgeschlossen</h2><p id="doneScore" class="muted"></p><button class="btn btn-primary full" id="doneClose">Fertig</button></div>
+</div></div>
+
+<div class="overlay" id="markerOverlay"><div class="modal-card"><h2 id="markerModalTitle">Merkpunkt</h2><div class="field"><span>Titel</span><input id="markerTitle" placeholder="z. B. Badewanne"></div><div class="field"><span>Beschreibung / Gedankenstütze</span><input id="markerDesc" placeholder="z. B. Baden in der Wanne"></div><div class="field"><span>Foto zum Merkpunkt (optional)</span><input id="markerFile" type="file" accept="image/*"></div><div id="items"></div><button class="btn btn-secondary full" id="addItem">＋ Lernpunkt hinzufügen</button><div class="actions"><button class="btn btn-primary full" id="saveMarker">Speichern</button><button class="btn btn-danger full hidden" id="deleteMarker">Merkpunkt löschen</button><button class="btn btn-ghost full" id="cancelMarker">Abbrechen</button></div></div></div>
+
+<div class="overlay" id="roomOverlay"><div class="modal-card"><h2>Raum bearbeiten</h2><div class="field"><span>Raumname</span><input id="roomName" maxlength="60"></div><div class="field"><span>Eigenes Raumfoto</span><input id="roomFile" type="file" accept="image/*"></div><div class="actions"><button class="btn btn-primary full" id="saveRoom">Speichern</button><button class="btn btn-danger full" id="deleteRoom">Raum löschen</button><button class="btn btn-ghost full" id="cancelRoom">Abbrechen</button></div></div></div>
+</div>
+
+<script>
+const DB='MemoryRoomsDB', ROOMS='rooms', MARKERS='markers', DBV=3;
+let db,currentRoom=null,currentMarkers=[],editMarkerId=null,editItems=[],markerPhoto=null,roomPhoto=null;
+let queue=[],qIndex=0,known=0,unknown=0,walkMode=false,walkMarkers=[],walkIndex=0,themeMode=false,pendingTheme=null;
+
+const $=id=>document.getElementById(id);
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function itemTemplate(o={}){return {id:o.id||id(),title:o.title||'',question:o.question||'',answer:o.answer||'',hint:o.hint||'',photo:o.photo||null,showInRoom:!!o.showInRoom,useInQuiz:o.useInQuiz!==false,wrongAnswers:Array.isArray(o.wrongAnswers)?o.wrongAnswers.slice(0,3):['','',''],stats:Object.assign({attempts:0,correct:0,incorrect:0,mastery:0,lastReviewed:null},o.stats||{})}}
+function markerNorm(m){m=Object.assign({},m);m.items=Array.isArray(m.items)?m.items.map(itemTemplate):[];if(!m.stats)m.stats={timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null};return m}
+function openDB(){return new Promise((res,rej)=>{if(db)return res(db);let r=indexedDB.open(DB,DBV);r.onupgradeneeded=e=>{let d=e.target.result;if(!d.objectStoreNames.contains(ROOMS)){let s=d.createObjectStore(ROOMS,{keyPath:'id'});s.createIndex('name','name')}if(!d.objectStoreNames.contains(MARKERS)){let s=d.createObjectStore(MARKERS,{keyPath:'id'});s.createIndex('roomId','roomId')}};r.onsuccess=e=>{db=e.target.result;res(db)};r.onerror=()=>rej(r.error)})}
+function all(store){return new Promise((res,rej)=>{let r=db.transaction(store).objectStore(store).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
+function put(store,obj){return new Promise((res,rej)=>{let r=db.transaction(store,'readwrite').objectStore(store).put(obj);r.onsuccess=()=>res(obj);r.onerror=()=>rej(r.error)})}
+function del(store,key){return new Promise((res,rej)=>{let r=db.transaction(store,'readwrite').objectStore(store).delete(key);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+async function rooms(){return all(ROOMS)}
+async function markers(roomId){return (await all(MARKERS)).filter(m=>m.roomId===roomId).map(markerNorm)}
+async function saveMarker(m){return put(MARKERS,markerNorm(m))}
+async function saveRoom(r){return put(ROOMS,r)}
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$(v).classList.add('active');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v))}
+function photoData(file,max=1200,q=.78){return new Promise((res,rej)=>{if(!file)return res(null);let rd=new FileReader();rd.onload=()=>{let im=new Image();im.onload=()=>{let w=im.width,h=im.height;if(w>max){h*=max/w;w=max}let c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);res(c.toDataURL('image/jpeg',q))};im.onerror=rej;im.src=rd.result};rd.onerror=rej;rd.readAsDataURL(file)})}
+
+async function renderRooms(){let rs=await rooms();$('roomList').innerHTML='';for(let r of rs){let ms=await markers(r.id),n=ms.reduce((a,m)=>a+m.items.length,0),done=ms.reduce((a,m)=>a+m.items.filter(i=>i.stats?.mastery>=2).length,0);let c=document.createElement('div');c.className='room-card';c.innerHTML=r.photo?`<img class="room-card-photo" src="${r.photo}">`:`<div class="room-card-icon">${r.icon||'🏠'}</div>`;c.innerHTML+=`<div class="room-info"><h2>${esc(r.name)}</h2><div class="meta">${ms.length} Merkpunkte · ${n} Lernpunkte${n?` · ${Math.round(done/n*100)} % gelernt`:''}</div></div><button class="room-menu">⋯</button>`;c.onclick=e=>{if(e.target.closest('.room-menu'))openRoomEditor(r);else openRoom(r.id)};c.querySelector('.room-menu').onclick=e=>{e.stopPropagation();openRoomEditor(r)};$('roomList').appendChild(c)}}
+
+async function ensureDemo(){let rs=await rooms();if(rs.length)return;let r={id:id(),name:'Wohnzimmer',icon:'🛋️',photo:'room-livingroom.jpg',roomPreset:'livingroom',createdAt:new Date().toISOString()};await saveRoom(r);for(let [i,[t,x,y]] of [['Tür',12,82],['Tisch',42,55],['Sofa',78,68],['Fenster',50,18],['Regal',15,42],['Bild',82,28],['Schrank',62,72]].entries())await saveMarker({id:id(),roomId:r.id,title:t,description:'',x,y,routeOrder:i+1,items:[],stats:{timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null}})}
+
+function visual(emoji,title){let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420"><rect width="600" height="420" rx="40" fill="#f4ecdf"/><text x="300" y="190" text-anchor="middle" font-size="120">${emoji}</text><text x="300" y="285" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#493c31">${title}</text></svg>`;return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
+
+async function createTheme(){let rs=await rooms(),old=rs.find(r=>r.type==='theme-german-states');if(old){openRoom(old.id);return}
+let r={id:id(),name:'🇩🇪 Deutsche Bundesländer – Gedächtnisweg',icon:'🇩🇪',type:'theme-german-states',photo:'room-livingroom.jpg',roomPreset:'livingroom',createdAt:new Date().toISOString()};await saveRoom(r);
+const data=[['Baden-Württemberg','Stuttgart','🛁🐍','Baden in der Wanne + Schlange: S wie Stuttgart'],['Bayern','München','👖😴','Schlafende Lederhose – typisch Bayern'],['Berlin','Berlin','🐻🚪','Ein Bär an der Tür – Berlin'],['Brandenburg','Potsdam','🔥🚪','Eine brennende Tür – Brandenburg'],['Bremen','Bremen','🎵☕','Ein singender Kaffee – Bremen'],['Hamburg','Hamburg','⚓🚢','Anker und Hafen – Hamburg'],['Hessen','Wiesbaden','🌳🛁','Ein Baum wächst aus der Wanne – Hessen'],['Mecklenburg-Vorpommern','Schwerin','🏰🦁','Schloss mit Löwe – Schwerin'],['Niedersachsen','Hannover','🐴🏙️','Ein Pferd in der Stadt – Hannover'],['Nordrhein-Westfalen','Düsseldorf','🌊🏘️','Der Rhein vor Häusern – Düsseldorf'],['Rheinland-Pfalz','Mainz','🍷⛪','Wein vor einer Kirche – Mainz'],['Saarland','Saarbrücken','⛏️🌉','Bergbau an einer Brücke – Saarbrücken'],['Sachsen','Dresden','🚂⛪','Zug zur Kirche – Dresden'],['Sachsen-Anhalt','Magdeburg','✋🚪','Hand an der Tür – Magdeburg'],['Schleswig-Holstein','Kiel','⚓🌊','Anker am Meer – Kiel'],['Thüringen','Erfurt','🌭🏙️','Thüringer Bratwurst in der Stadt – Erfurt']];
+const pos=[[12,82],[28,72],[48,78],[70,80],[87,72],[88,50],[72,34],[50,28],[28,34],[15,48],[34,50],[52,48],[70,55],[82,28],[52,12],[18,18]];
+for(let i=0;i<data.length;i++){let [land,stadt,emoji,hint]=data[i],p=pos[i],img=visual(emoji,land),it=itemTemplate({title:land,question:'Welches Bundesland und welche Hauptstadt gehören zu diesem Bild?',answer:`${land} – ${stadt}`,hint,photo:img,showInRoom:true});await saveMarker({id:id(),roomId:r.id,title:`${emoji} ${land}`,description:hint,photo:img,x:p[0],y:p[1],routeOrder:i+1,items:[it],stats:{timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null}})}await renderRooms();openRoom(r.id)}
+
+async function openRoom(rid){currentRoom=(await rooms()).find(r=>r.id===rid);if(!currentRoom)return;currentRoomId=rid;currentMarkers=await markers(rid);currentMarkers.sort((a,b)=>(a.routeOrder||999)-(b.routeOrder||999));$('roomTitle').textContent=currentRoom.name;$('roomSub').textContent=currentRoom.type==='theme-german-states'?'Visueller Gedächtnisweg':'Dein Gedächtnisraum';$('roomBg').src=currentRoom.photo||'room-livingroom.jpg';show('room');renderMarkers()}
+let currentRoomId=null;
+function renderMarkers(){$('markers').innerHTML='';currentMarkers.forEach((m,idx)=>{let e=document.createElement('button');e.className='marker';e.style.left=m.x+'%';e.style.top=m.y+'%';e.innerHTML=m.photo?`<img src="${m.photo}"><span>${esc(m.title)}</span>`:`<span class="num">${idx+1}</span><span>${esc(m.title||'Merkpunkt')}</span>`;if(m.items.length)e.innerHTML+=`<span class="count">${m.items.length}</span>`;e.onclick=()=>openMarkerMenu(m);$('markers').appendChild(e);(m.items||[]).forEach((it,j)=>{if(!it.photo||!it.showInRoom)return;let t=document.createElement('button');t.className='thought';t.style.left=Math.max(5,Math.min(95,m.x+[-8,8,0,10,-10][j%5]))+'%';t.style.top=Math.max(5,Math.min(95,m.y+[-10,-10,11,8,8][j%5]))+'%';t.innerHTML=`<img src="${it.photo}">`;t.onclick=e=>{e.stopPropagation();openMarkerMenu(m)};$('markers').appendChild(t)})})}
+
+function openMarkerMenu(m){let has=m.items.length;if(confirm(`${m.title}\n\n${has} Lernpunkt${has===1?'':'e'}\n\nOK = Lernen\nAbbrechen = Bearbeiten`))startLearn(m,false);else openMarkerEditor(m)}
+function openMarkerEditor(m){editMarkerId=m?.id||null;editItems=(m?.items||[]).map(itemTemplate);markerPhoto=m?.photo||null;$('markerModalTitle').textContent=m?'Merkpunkt bearbeiten':'Neuer Merkpunkt';$('markerTitle').value=m?.title||'';$('markerDesc').value=m?.description||'';$('deleteMarker').classList.toggle('hidden',!m);$('markerOverlay').classList.add('active');renderItems()}
+function renderItems(){$('items').innerHTML='';if(!editItems.length)$('items').innerHTML='<p class="muted">Noch keine Lernpunkte.</p>';editItems.forEach((it,i)=>{let d=document.createElement('div');d.className='item-card';d.innerHTML=`<div class="item-head"><strong>${esc(it.title||it.question||'Lernpunkt')}</strong><button class="item-delete">✕</button></div><small>${esc(it.answer)}</small><div class="field"><span>Titel (optional)</span><input class="it-title" value="${esc(it.title)}"></div><div class="field"><span>Frage (optional)</span><input class="it-question" value="${esc(it.question)}"></div><div class="field"><span>Antwort / Lösung</span><textarea class="it-answer">${esc(it.answer)}</textarea></div><div class="field"><span>Gedankenstütze / Eselsbrücke</span><input class="it-hint" value="${esc(it.hint)}"></div><div class="field"><span>Foto als Gedankenstütze</span><input class="it-file" type="file" accept="image/*"></div>`;d.querySelector('.item-delete').onclick=()=>{editItems.splice(i,1);renderItems()};d.querySelector('.it-file').onchange=async e=>{editItems[i].photo=await photoData(e.target.files[0],800,.7)};['title','question','answer','hint'].forEach(k=>d.querySelector('.it-'+k).oninput=e=>editItems[i][k]=e.target.value);$('items').appendChild(d)})}
+async function saveMarkerEditor(){let title=$('markerTitle').value.trim();if(!title){alert('Bitte einen Titel eingeben.');return}for(let it of editItems){if(!it.title&&!it.question){alert('Jeder Lernpunkt braucht Titel ODER Frage.');return}if(!it.answer){alert('Jeder Lernpunkt braucht eine Antwort.');return}}let m=editMarkerId?currentMarkers.find(x=>x.id===editMarkerId):{id:id(),roomId:currentRoomId,x:50,y:50,routeOrder:currentMarkers.length+1,stats:{timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null}};m.title=title;m.description=$('markerDesc').value.trim();m.items=editItems;m.photo=markerPhoto||null;if(editMarkerId){await saveMarker(m)}else{await saveMarker(m)}$('markerOverlay').classList.remove('active');currentMarkers=await markers(currentRoomId);renderMarkers()}
+$('markerFile').onchange=async e=>{markerPhoto=await photoData(e.target.files[0],900,.75)}
+$('addItem').onclick=()=>{editItems.push(itemTemplate());renderItems()}
+$('saveMarker').onclick=saveMarkerEditor;$('cancelMarker').onclick=()=>$('markerOverlay').classList.remove('active');
+$('deleteMarker').onclick=async()=>{if(!editMarkerId||!confirm('Merkpunkt und Lernpunkte wirklich löschen?'))return;await del(MARKERS,editMarkerId);$('markerOverlay').classList.remove('active');currentMarkers=await markers(currentRoomId);renderMarkers()}
+
+function startLearn(m,wrongOnly=false){let items=m.items.filter(it=>it.answer&&(it.question||it.title));if(wrongOnly)items=items.filter(it=>(it.stats?.incorrect||0)>0&&(it.stats?.mastery||0)<2);if(!items.length){alert('Dieser Merkpunkt hat noch keine Lernpunkte.');return}walkMode=false;themeMode=currentRoom?.type==='theme-german-states';walkMarkers=[];queue=items.map(it=>Object.assign({},it,{_markerId:m.id,_markerTitle:m.title,_markerPhoto:m.photo}));qIndex=0;known=0;unknown=0;showLearnItem();$('learnOverlay').classList.add('active')}
+function startWalk(){walkMarkers=currentMarkers.filter(m=>m.items?.length).sort((a,b)=>(a.routeOrder||999)-(b.routeOrder||999));if(!walkMarkers.length){alert('Es gibt noch keine Lernpunkte für einen Rundgang.');return}walkMode=true;themeMode=currentRoom?.type==='theme-german-states';walkIndex=0;known=0;unknown=0;loadWalkMarker();$('learnOverlay').classList.add('active')}
+function loadWalkMarker(){let m=walkMarkers[walkIndex];queue=m.items.filter(it=>it.answer&&(it.question||it.title)).map(it=>Object.assign({},it,{_markerId:m.id,_markerTitle:m.title,_markerPhoto:m.photo}));qIndex=0;showLearnItem()}
+function showLearnItem(){let it=queue[qIndex];$('learnAnchor').textContent=it._markerTitle||'Merkpunkt';if(it._markerPhoto){$('learnPhoto').src=it._markerPhoto;$('learnPhoto').classList.remove('hidden')}else $('learnPhoto').classList.add('hidden');$('learnProgress').textContent=walkMode?`Ort ${walkIndex+1} von ${walkMarkers.length} · Punkt ${qIndex+1} von ${queue.length}`:`${qIndex+1} von ${queue.length}`;$('learnPrompt').textContent=it.question?'FRAGE':'LERNPUNKT';$('learnQuestion').textContent=it.question||it.title;$('solutionText').textContent=it.answer;$('solution').classList.add('hidden');$('learnDone').classList.add('hidden');$('feedback').classList.add('hidden');$('themeNext').classList.add('hidden');$('knew').classList.toggle('hidden',themeMode);$('notKnew').classList.toggle('hidden',themeMode);$('normalLearn').classList.toggle('hidden',themeMode);$('themeLearn').classList.toggle('hidden',!themeMode);if(themeMode){$('themeAnswer').value='';setTimeout(()=>$('themeAnswer').focus(),80)}$('solutionHint').textContent=it.hint||'';$('solutionHint').classList.toggle('hidden',!it.hint);$('solutionPhotoWrap').innerHTML=it.photo?`<img style="width:100%;max-height:260px;object-fit:contain;border-radius:16px;margin-top:10px" src="${it.photo}">`:''}
+function showSolution(){if(themeMode)return;$('normalLearn').classList.add('hidden');$('solution').classList.remove('hidden')}
+function norm(s){return String(s||'').toLocaleLowerCase('de-DE').replace(/[^a-z0-9äöüß]/gi,'')}
+async function checkTheme(){let it=queue[qIndex],v=$('themeAnswer').value.trim();if(!v){alert('Bitte zuerst deine Antwort eingeben.');return}let ok=norm(v)===norm(it.answer);await score(ok);pendingTheme=ok;$('themeLearn').classList.add('hidden');$('solution').classList.remove('hidden');$('feedback').textContent=ok?'✅ Richtig! Deine Antwort stimmt.':'❌ Noch nicht richtig. Vergleiche jetzt mit der Lösung.';$('feedback').className='feedback '+(ok?'ok':'bad');$('themeNext').classList.remove('hidden')}
+async function score(ok){let it=queue[qIndex];it.stats=Object.assign({attempts:0,correct:0,incorrect:0,mastery:0,lastReviewed:null},it.stats||{});it.stats.attempts++;it.stats.lastReviewed=new Date().toISOString();ok?(it.stats.correct++,it.stats.mastery=Math.min(5,(it.stats.mastery||0)+1),known++):(it.stats.incorrect++,it.stats.mastery=Math.max(0,(it.stats.mastery||0)-1),unknown++);let m=currentMarkers.find(x=>x.id===it._markerId);if(m){let i=m.items.findIndex(x=>x.id===it.id);if(i>=0)m.items[i]=itemTemplate(it);m.stats=m.stats||{timesAsked:0,timesKnown:0,timesUnknown:0,lastAsked:null};m.stats.timesAsked++;ok?m.stats.timesKnown++:m.stats.timesUnknown++;m.stats.lastAsked=new Date().toISOString();await saveMarker(m)}}
+$('knew').onclick=async()=>{await score(true);nextLearn()};$('notKnew').onclick=async()=>{await score(false);nextLearn()};$('themeNext').onclick=nextLearn;
+function nextLearn(){qIndex++;pendingTheme=null;if(qIndex<queue.length){showLearnItem();return}if(walkMode&&walkIndex<walkMarkers.length-1){walkIndex++;loadWalkMarker();return}$('solution').classList.add('hidden');$('themeLearn').classList.add('hidden');$('normalLearn').classList.add('hidden');$('learnDone').classList.remove('hidden');$('doneTitle').textContent=walkMode?'Rundgang abgeschlossen':'Lernpunkt abgeschlossen';$('doneScore').textContent=`${known} gewusst · ${unknown} nicht gewusst`}
+
+$('closeLearn').onclick=closeLearn;$('closeTheme').onclick=closeLearn;$('showSolution').onclick=showSolution;$('checkTheme').onclick=checkTheme;$('doneClose').onclick=closeLearn;
+function closeLearn(){$('learnOverlay').classList.remove('active');pendingTheme=null}
+$('walkBtn').onclick=startWalk;$('addMarker').onclick=()=>openMarkerEditor(null);$('backRooms').onclick=()=>{show('rooms');renderRooms()};
+
+async function openRoomEditor(r){currentRoom=r;$('roomName').value=r.name;$('roomFile').value='';roomPhoto=r.photo||null;$('roomOverlay').classList.add('active')}
+$('roomFile').onchange=async e=>{roomPhoto=await photoData(e.target.files[0],1400,.78)}
+$('saveRoom').onclick=async()=>{let n=$('roomName').value.trim();if(!n)return alert('Bitte einen Raumnamen eingeben.');currentRoom.name=n;currentRoom.photo=roomPhoto;await saveRoom(currentRoom);$('roomOverlay').classList.remove('active');await renderRooms();openRoom(currentRoom.id)}
+$('cancelRoom').onclick=()=>$('roomOverlay').classList.remove('active');
+$('deleteRoom').onclick=async()=>{let rs=await rooms();if(rs.length<=1)return alert('Der letzte Raum kann nicht gelöscht werden.');if(!confirm(`Raum „${currentRoom.name}“ wirklich löschen?`))return;for(let m of await markers(currentRoom.id))await del(MARKERS,m.id);await del(ROOMS,currentRoom.id);$('roomOverlay').classList.remove('active');show('rooms');renderRooms()}
+
+async function stats(){let rs=await rooms(),ms=await all(MARKERS),items=ms.flatMap(m=>markerNorm(m).items),attempts=items.reduce((a,i)=>a+(i.stats?.attempts||0),0),correct=items.reduce((a,i)=>a+(i.stats?.correct||0),0),mastered=items.filter(i=>(i.stats?.mastery||0)>=2).length;let vals=[[rs.length,'Räume'],[ms.length,'Merkpunkte'],[items.length,'Lernpunkte'],[attempts,'Abfragen'],[correct,'Gewusst'],[mastered,'Beherrscht']];$('statsGrid').innerHTML=vals.map(v=>`<div class="stat"><strong>${v[0]}</strong><span>${v[1]}</span></div>`).join('')}
+$('roomStats').onclick=()=>{show('stats');stats()};
+
+$('newRoom').onclick=()=>openRoomEditor({id:null,name:'',photo:null,icon:'🏠',createdAt:new Date().toISOString()});
+$('themeRoom').onclick=createTheme;
+
+$('export').onclick=async()=>{let data={app:'MemoryRooms',backupVersion:3,rooms:await rooms(),markers:(await all(MARKERS)).map(markerNorm),exportedAt:new Date().toISOString()};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='memoryrooms-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click()};
+$('import').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.rooms)||!Array.isArray(d.markers))throw Error('Ungültiges Backup');if(!confirm('Backup vollständig wiederherstellen? Die aktuellen Daten werden ersetzt.'))return;let tx=db.transaction([ROOMS,MARKERS],'readwrite');tx.objectStore(ROOMS).clear();tx.objectStore(MARKERS).clear();d.rooms.forEach(r=>tx.objectStore(ROOMS).put(r));d.markers.forEach(m=>tx.objectStore(MARKERS).put(markerNorm(m)));tx.oncomplete=()=>{renderRooms();show('rooms');alert('Backup wiederhergestellt.')}}catch(err){alert('Backup konnte nicht importiert werden.')}e.target.value=''};
+$('clear').onclick=async()=>{if(!confirm('Wirklich alle Daten löschen?'))return;if(!confirm('Letzte Sicherheitsabfrage: Daten unwiderruflich löschen?'))return;let tx=db.transaction([ROOMS,MARKERS],'readwrite');tx.objectStore(ROOMS).clear();tx.objectStore(MARKERS).clear();tx.oncomplete=async()=>{currentRoom=null;currentMarkers=[];await ensureDemo();await renderRooms();show('rooms')}};
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=async()=>{let v=b.dataset.view;if(v==='rooms'){show('rooms');renderRooms()}else if(v==='room'){if(currentRoom)openRoom(currentRoom.id);else{let rs=await rooms();if(rs[0])openRoom(rs[0].id)}}else if(v==='stats'){show('stats');stats()}else show('settings')});
+
+(async()=>{try{await openDB();await ensureDemo();await renderRooms()}catch(e){console.error(e);alert('MemoryRooms konnte nicht gestartet werden.')}})();
+</script>
 </body>
 </html>
