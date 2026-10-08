@@ -34,3 +34,78 @@
 /* room list */
 .room-card{min-height:118px;padding:16px 17px}.room-card-info h3{font-size:18px}.room-card-info p{font-size:10px}.meta-chip{display:inline-flex;align-items:center;margin-top:8px;margin-right:5px;padding:4px 7px;border-radius:9px;background:rgba(255,255,255,.18);font-size:9px;font-weight:750}.meta-chip.filled{background:rgba(255,255,255,.26)}
 @media(max-width:380px){.header h1{font-size:17px}.subtitle{font-size:10px}.room-bottom-bar{grid-template-columns:1fr}.learn-q{font-size:21px}.learn-card,.edit-card{padding-left:15px;padding-right:15px}}
+
+
+/* ===== v7: Fotorealistischer Memory-Palace + iPhone/iPad Layout ===== */
+.room-background{background:#c7ad91;}
+.room-photo-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block;filter:saturate(.98) contrast(1.02);}
+.room-photo-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(24,17,11,.10),rgba(24,17,11,.04) 55%,rgba(24,17,11,.22));pointer-events:none;}
+.room-container{background:#b69a7d;}
+.room-side-panel{background:rgba(255,250,243,.98);border:1px solid var(--line);border-radius:22px;padding:17px;box-shadow:var(--soft);margin-top:10px;}
+.side-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.side-panel-head h3{font-size:19px;letter-spacing:-.025em;line-height:1.1;margin-top:2px;}
+.side-marker-badge{min-width:32px;height:32px;border-radius:11px;background:#eaf4ff;color:#1f6fc9;display:grid;place-items:center;font-weight:900;flex:none;}
+.side-marker-desc{font-size:12px;color:var(--muted);line-height:1.45;margin:9px 0 12px;}
+.side-marker-photo-wrap{margin:0 0 12px;border-radius:16px;overflow:hidden;background:#eee2d4;}
+.side-marker-photo-wrap img{display:block;width:100%;height:150px;object-fit:cover;}
+.side-panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.side-panel-actions .btn{min-height:44px;padding:10px 8px;font-size:12px;}
+.side-panel-actions .btn:disabled{opacity:.45;box-shadow:none;cursor:not-allowed;}
+.side-tip{display:grid;gap:3px;margin-top:12px;padding:11px 12px;border-radius:14px;background:#f6eee3;color:#7a6b5e;font-size:10px;line-height:1.45;}
+.side-tip strong{color:#55483d;font-size:10px;}
+.marker{backdrop-filter:blur(5px);background:rgba(22,19,16,.88);}
+.marker-photo{border:2px solid rgba(255,255,255,.8);}
+
+@media (min-width:760px){
+  html,body{overflow:hidden;}
+  #app{max-width:1180px;box-shadow:0 0 70px rgba(55,40,25,.08);}
+  .header{padding-left:28px;padding-right:28px;}
+  .header h1{font-size:21px;}
+  .subtitle{font-size:12px;}
+  #main-content{padding-bottom:calc(78px + var(--safe-bottom));}
+  .view.room-view{padding:16px 26px 24px;}
+  .room-toolbar{padding:2px 0 12px;}
+  .room-toolbar h2{font-size:25px;}
+  .room-tip{font-size:11px;}
+  .room-intro-line{font-size:11px;padding-bottom:10px;}
+  .room-view .room-container{margin:0;aspect-ratio:16/10;min-height:0;height:auto;max-height:none;border-width:4px;}
+  .room-side-panel{margin-top:0;min-height:100%;display:flex;flex-direction:column;justify-content:flex-start;}
+  .room-side-panel .side-marker-photo-wrap img{height:190px;}
+  .room-view > .room-container,.room-view > .room-side-panel{min-width:0;}
+  .room-view{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(290px,.75fr);grid-template-rows:auto auto auto auto;column-gap:16px;align-items:start;}
+  .room-view .room-toolbar{grid-column:1/-1;}
+  .room-view .room-intro-line{grid-column:1/-1;}
+  .room-view .room-container{grid-column:1;grid-row:3;}
+  .room-view .room-side-panel{grid-column:2;grid-row:3;}
+  .room-view .room-bottom-bar{grid-column:1;grid-row:4;}
+  .room-view .room-back-link{grid-column:2;grid-row:4;align-self:center;}
+  .room-bottom-bar{margin-top:12px;}
+  .room-action-card{min-height:64px;}
+  .bottom-nav{width:min(1180px,100%);height:calc(74px + var(--safe-bottom));}
+  .nav-btn .nav-icon{font-size:22px;}
+  .nav-btn .nav-label{font-size:11px;}
+}
+@media (min-width:760px) and (orientation:landscape){
+  .room-view .room-container{aspect-ratio:16/9;}
+  .room-side-panel{max-height:calc(100vh - 205px);overflow:auto;}
+  .room-view{padding-top:10px;}
+}
+@media (min-width:760px) and (orientation:portrait){
+  .room-view{grid-template-columns:minmax(0,1fr) minmax(260px,.58fr);}
+  .room-view .room-container{aspect-ratio:4/3;}
+}
+@media (max-width:759px){.room-side-panel{display:block;}}
+
+
+/* ===== v8: Raumverwaltung + Lernabfrage-Einstellungen ===== */
+.room-card-menu{position:absolute;right:13px;bottom:13px;z-index:3;width:38px;height:34px;border:1px solid rgba(255,255,255,.35);border-radius:11px;background:rgba(30,25,20,.34);color:#fff;font-size:22px;line-height:1;display:grid;place-items:center;backdrop-filter:blur(8px)}
+.room-card-menu:active{transform:scale(.94);background:rgba(30,25,20,.55)}
+.settings-summary{display:block;color:#1b7a5a;font-size:10px;line-height:1.4;margin-top:7px;font-weight:800}
+.learning-settings{background:#f9f4ed;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:20px}
+.learning-settings h3{margin-bottom:9px}
+.setting-field{display:grid;gap:6px;margin:9px 0;font-size:11px;font-weight:800;color:#5e544b}
+.setting-field select{width:100%;border:1px solid #ded2c5;background:#fffdf9;border-radius:13px;padding:12px 13px;color:var(--ink);outline:none}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:11px 0;padding:12px;border-radius:15px;background:#fff;border:1px solid var(--line)}
+.toggle-row strong{display:block;font-size:11px}.toggle-row small{display:block;color:var(--muted);font-size:9px;margin-top:3px;line-height:1.35}
+.toggle-row input{appearance:none;width:45px;height:26px;border-radius:20px;background:#d8cec2;position:relative;flex:none;transition:.18s}.toggle-row input:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.16);transition:.18s}.toggle-row input:checked{background:#2376d8}.toggle-row input:checked:before{transform:translateX(19px)}
+@media (min-width:760px){.learning-settings{max-width:720px}.settings-hero{max-width:720px}}

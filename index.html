@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#f5efe6">
   <meta name="description" content="MemoryRooms – Lernen mit dem Memory-Palace-Prinzip">
   <title>MemoryRooms</title>
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <div id="app">
@@ -40,42 +40,29 @@
         <div class="room-intro-line"><span>📍 Merkpunkte als Gedächtnisanker</span><span id="room-marker-count">0 Orte</span></div>
         <div class="room-container">
           <div class="room-background" id="room-bg">
-            <div class="room-ceiling"></div>
-            <div class="room-wall"></div>
-            <div class="room-floor"></div>
-            <div class="room-baseboard"></div>
-            <div class="room-light-beam"></div>
-            <div class="room-ceiling-lamp"><span></span></div>
-            <div class="room-rug"></div>
-            <div class="room-plant"><span class="plant-pot"></span><span class="leaf l1"></span><span class="leaf l2"></span><span class="leaf l3"></span><span class="leaf l4"></span></div>
-            <div class="room-window"><div class="window-frame"></div><div class="window-glass"></div><div class="window-sill"></div></div>
-            <div class="room-picture"><div class="picture-frame"></div><div class="picture-art"></div></div>
-            <div class="room-shelf">
-              <div class="shelf-body"></div>
-              <div class="shelf-board shelf-board-1"></div>
-              <div class="shelf-board shelf-board-2"></div>
-              <div class="shelf-book b1"></div><div class="shelf-book b2"></div><div class="shelf-book b3"></div>
-            </div>
-            <div class="room-sofa">
-              <div class="sofa-back"></div><div class="sofa-seat"></div>
-              <div class="sofa-arm sofa-arm-l"></div><div class="sofa-arm sofa-arm-r"></div>
-              <div class="sofa-cushion c1"></div><div class="sofa-cushion c2"></div>
-            </div>
-            <div class="room-table">
-              <div class="table-top"></div>
-              <div class="table-leg tl1"></div><div class="table-leg tl2"></div>
-            </div>
-            <div class="room-cabinet">
-              <div class="cabinet-body"></div>
-              <div class="cabinet-door cd1"></div><div class="cabinet-door cd2"></div>
-              <div class="cabinet-knob k1"></div><div class="cabinet-knob k2"></div>
-            </div>
-            <div class="room-door"><div class="door-panel"></div><div class="door-handle"></div></div>
-            <div class="room-shadow sofa-shadow"></div>
-            <div class="room-shadow table-shadow"></div>
+            <img class="room-photo-bg" src="room-livingroom.jpg" alt="Fotorealistischer Gedächtnisraum Wohnzimmer">
+            <div class="room-photo-shade"></div>
           </div>
           <div id="markers-layer"></div>
         </div>
+        <aside class="room-side-panel" id="room-side-panel">
+          <div class="side-panel-head">
+            <div>
+              <span class="eyebrow">AKTUELLER GEDÄCHTNISANKER</span>
+              <h3 id="side-marker-title">Noch keinen Merkpunkt ausgewählt</h3>
+            </div>
+            <span class="side-marker-badge" id="side-marker-count">—</span>
+          </div>
+          <p id="side-marker-desc" class="side-marker-desc">Tippe auf einen Ort im Raum. Dort kannst du beliebig viele Lernpunkte hinterlegen.</p>
+          <div id="side-marker-photo-wrap" class="side-marker-photo-wrap hidden">
+            <img id="side-marker-photo" alt="Foto des Merkpunkts">
+          </div>
+          <div class="side-panel-actions">
+            <button id="btn-side-learn" class="btn btn-primary" type="button" disabled>🧠 Lernen</button>
+            <button id="btn-side-edit" class="btn btn-secondary" type="button" disabled>✏️ Bearbeiten</button>
+          </div>
+          <div class="side-tip"><strong>💡 So funktioniert es</strong><span>Ort merken → Frage beantworten → Lösung sehen → Gedankenstütze einprägen</span></div>
+        </aside>
         <div class="room-bottom-bar">
           <button id="btn-quiz-room" class="room-action-card accent" type="button"><span>🎯</span><div><strong>Raum-Quiz</strong><small>Alles Gelernte abfragen</small></div></button>
           <button id="btn-add-marker" class="room-action-card" type="button"><span>＋</span><div><strong>Merkpunkt hinzufügen</strong><small>Ort als Gedächtnisanker</small></div></button>
@@ -261,6 +248,20 @@
         <div class="settings-panel">
           <h2 class="panel-title">⚙️ Einstellungen</h2>
           <p class="panel-desc">Backup & Daten – bleiben auf deinem Gerät</p>
+          <div class="settings-hero">
+            <div class="settings-icon">🧠</div>
+            <div><h2>Deine Standard-Abfrage</h2><p>Diese Einstellungen gelten für „Lernen“ und bestimmen, wie groß deine nächste Lernrunde ist.</p><strong id="settings-summary" class="settings-summary"></strong></div>
+          </div>
+
+          <div class="settings-group learning-settings">
+            <h3>Was soll abgefragt werden?</h3>
+            <label class="setting-field"><span>Abfragebasis</span><select id="setting-filter"><option value="all">Alle Lernpunkte</option><option value="quiz">Nur fürs Quiz freigegebene Lernpunkte</option><option value="wrong">Nur zu wiederholende Lernpunkte</option></select></label>
+            <label class="setting-field"><span>Umfang pro Lernrunde</span><select id="setting-count"><option value="5">5 Lernpunkte</option><option value="10">10 Lernpunkte</option><option value="20">20 Lernpunkte</option><option value="all">Alle passenden Lernpunkte</option></select></label>
+            <label class="setting-field"><span>Bereich</span><select id="setting-scope"><option value="current">Aktueller Raum</option><option value="all">Alle Räume</option></select></label>
+            <label class="toggle-row"><span><strong>Zufällige Reihenfolge</strong><small>Jede Lernrunde mischt die ausgewählten Lernpunkte.</small></span><input type="checkbox" id="setting-shuffle"></label>
+            <button id="btn-start-configured-learning" class="btn btn-primary btn-large" type="button">🧠 Lernrunde jetzt starten</button>
+          </div>
+
           <div class="settings-group">
             <h3>Datensicherung</h3>
             <button id="btn-export-data" class="btn btn-secondary btn-large" type="button">Backup exportieren (JSON)</button>
@@ -293,7 +294,7 @@
     </nav>
   </div>
 
-  <script src="db.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="db.js?v=8"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

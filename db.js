@@ -266,7 +266,7 @@ async function exportAllData() {
   const markers = await getAllMarkers();
   return {
     app: 'MemoryRooms',
-    backupVersion: 2,
+    backupVersion: 3,
     dbVersion: DB_VERSION,
     rooms: rooms,
     markers: markers,

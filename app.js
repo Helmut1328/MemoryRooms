@@ -31,6 +31,27 @@ let quizWrongItems = [];
 let quizSelected = null;
 let menuMarker = null;
 
+const DEFAULT_SETTINGS = {
+  questionFilter: 'all',
+  questionCount: 10,
+  questionScope: 'all',
+  shuffle: true
+};
+let appSettings = loadSettings();
+
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('memoryrooms-settings') || 'null');
+    return Object.assign({}, DEFAULT_SETTINGS, saved || {});
+  } catch (e) {
+    return Object.assign({}, DEFAULT_SETTINGS);
+  }
+}
+
+function saveSettings() {
+  localStorage.setItem('memoryrooms-settings', JSON.stringify(appSettings));
+}
+
 const views = {
   rooms: document.getElementById('view-rooms'),
   room: document.getElementById('view-room'),
@@ -129,7 +150,7 @@ function setupEventListeners() {
   document.querySelectorAll('.nav-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       const view = btn.dataset.view;
-      if (view === 'room') openCurrentOrFirstRoom();
+      if (view === 'room') startConfiguredLearning();
       else if (view === 'rooms') {
         showView('rooms');
         renderRoomList();
@@ -156,6 +177,12 @@ function setupEventListeners() {
     openEditMarker(null);
   });
   document.getElementById('btn-quiz-room').addEventListener('click', startRoomQuiz);
+  document.getElementById('btn-side-learn').addEventListener('click', function () {
+    if (menuMarker) startLearn(menuMarker, false);
+  });
+  document.getElementById('btn-side-edit').addEventListener('click', function () {
+    if (menuMarker) openEditMarker(menuMarker.id);
+  });
 
   document.getElementById('btn-menu-learn').addEventListener('click', function () {
     if (menuMarker) startLearn(menuMarker, false);
@@ -210,6 +237,12 @@ function setupEventListeners() {
   document.getElementById('btn-export-data').addEventListener('click', exportData);
   document.getElementById('input-import-data').addEventListener('change', importData);
   document.getElementById('btn-clear-data').addEventListener('click', clearData);
+  document.getElementById('setting-filter').addEventListener('change', saveSettingsFromUI);
+  document.getElementById('setting-count').addEventListener('change', saveSettingsFromUI);
+  document.getElementById('setting-scope').addEventListener('change', saveSettingsFromUI);
+  document.getElementById('setting-shuffle').addEventListener('change', saveSettingsFromUI);
+  document.getElementById('btn-start-configured-learning').addEventListener('click', startConfiguredLearning);
+  renderSettingsUI();
 
   markersLayer.addEventListener('pointerdown', onMarkerPointerDown);
   document.addEventListener('pointermove', onMarkerPointerMove);
@@ -254,10 +287,39 @@ async function renderRoomList() {
       (itemCount > 0
         ? '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>'
         : '') +
-      '</div>';
-    card.addEventListener('click', function () { openRoom(room.id); });
+      '</div>' +
+      '<button class="room-card-menu" type="button" aria-label="Raumoptionen">⋯</button>';
+    card.addEventListener('click', function (e) {
+      if (e.target.closest('.room-card-menu')) return;
+      openRoom(room.id);
+    });
+    card.querySelector('.room-card-menu').addEventListener('click', function (e) {
+      e.stopPropagation();
+      openRoomActions(room);
+    });
     roomListEl.appendChild(card);
   }
+}
+
+async function openRoomActions(room) {
+  const action = prompt('Raum „' + room.name + '“\n\n1 = Öffnen\n2 = Löschen', '1');
+  if (action === '1') {
+    openRoom(room.id);
+    return;
+  }
+  if (action !== '2') return;
+  const rooms = await getAllRooms();
+  if (rooms.length <= 1) {
+    alert('Der letzte Raum kann nicht gelöscht werden. Erstelle zuerst einen neuen Raum.');
+    return;
+  }
+  const markers = await getMarkersByRoom(room.id);
+  const itemCount = markers.reduce(function (sum, m) { return sum + countItems(m); }, 0);
+  const ok = confirm('Raum „' + room.name + '“ wirklich löschen?\n\nDabei werden ' + markers.length + ' Merkpunkte und ' + itemCount + ' Lernpunkte dauerhaft gelöscht.');
+  if (!ok) return;
+  await deleteRoom(room.id);
+  if (currentRoomId === room.id) currentRoomId = null;
+  await renderRoomList();
 }
 
 async function createNewRoom() {
@@ -296,6 +358,7 @@ async function openRoom(roomId) {
   if (roomTitle) roomTitle.textContent = room.name;
 
   currentMarkers = await getMarkersByRoom(roomId);
+  resetSideMarkerPanel();
   const roomMarkerCount = document.getElementById('room-marker-count');
   if (roomMarkerCount) roomMarkerCount.textContent = currentMarkers.length + (currentMarkers.length === 1 ? ' Ort' : ' Orte');
   renderMarkers();
@@ -330,9 +393,52 @@ function renderMarkers() {
 }
 
 function onMarkerTap(marker) {
+  updateSideMarkerPanel(marker);
   // Jeder Merkpunkt bekommt dasselbe, eindeutig sichtbare Menü.
   // So ist Bearbeiten immer erreichbar – auch bei einem noch leeren Merkpunkt.
   openMarkerMenu(marker);
+}
+
+function resetSideMarkerPanel() {
+  const title = document.getElementById('side-marker-title');
+  const count = document.getElementById('side-marker-count');
+  const desc = document.getElementById('side-marker-desc');
+  const photoWrap = document.getElementById('side-marker-photo-wrap');
+  const photo = document.getElementById('side-marker-photo');
+  const learn = document.getElementById('btn-side-learn');
+  const edit = document.getElementById('btn-side-edit');
+  if (!title) return;
+  title.textContent = 'Noch keinen Merkpunkt ausgewählt';
+  count.textContent = '—';
+  desc.textContent = 'Tippe auf einen Ort im Raum. Dort kannst du beliebig viele Lernpunkte hinterlegen.';
+  photo.src = '';
+  photoWrap.classList.add('hidden');
+  learn.disabled = true;
+  edit.disabled = true;
+}
+
+function updateSideMarkerPanel(marker) {
+  const title = document.getElementById('side-marker-title');
+  const count = document.getElementById('side-marker-count');
+  const desc = document.getElementById('side-marker-desc');
+  const photoWrap = document.getElementById('side-marker-photo-wrap');
+  const photo = document.getElementById('side-marker-photo');
+  const learn = document.getElementById('btn-side-learn');
+  const edit = document.getElementById('btn-side-edit');
+  if (!title) return;
+  const n = countItems(marker);
+  title.textContent = marker.title || 'Merkpunkt';
+  count.textContent = n ? String(n) : '0';
+  desc.textContent = marker.description || (n ? n + ' Lernpunkt' + (n !== 1 ? 'e' : '') + ' an diesem Ort.' : 'Noch keine Lernpunkte. Lege jetzt den ersten Lernpunkt an.');
+  if (marker.photo) {
+    photo.src = marker.photo;
+    photoWrap.classList.remove('hidden');
+  } else {
+    photo.src = '';
+    photoWrap.classList.add('hidden');
+  }
+  learn.disabled = n === 0;
+  edit.disabled = false;
 }
 
 function openMarkerMenu(marker) {
@@ -717,7 +823,9 @@ function startLearn(marker, wrongOnly) {
     return;
   }
 
-  learnQueue = items.slice();
+  learnQueue = items.map(function (it) {
+    return Object.assign({}, it, { _markerId: marker.id, _markerTitle: marker.title || 'Merkpunkt', _markerPhoto: marker.photo || null });
+  });
   learnIndex = 0;
   learnKnown = 0;
   learnUnknown = 0;
@@ -731,14 +839,14 @@ function startLearn(marker, wrongOnly) {
 
 function showLearnItem() {
   const item = learnQueue[learnIndex];
-  const marker = currentMarkers.find(function (m) { return m.id === learnMarkerId; });
+  const marker = currentMarkers.find(function (m) { return m.id === learnMarkerId; }) || null;
   const placeTitle = document.getElementById('learn-place-title');
   const placeWrap = document.getElementById('learn-place-wrap');
   const placePhoto = document.getElementById('learn-place-photo');
-  if (placeTitle) placeTitle.textContent = marker ? (marker.title || 'Merkpunkt') : 'Merkpunkt';
+  if (placeTitle) placeTitle.textContent = item._markerTitle || (marker ? (marker.title || 'Merkpunkt') : 'Merkpunkt');
   if (placeWrap && placePhoto) {
-    if (marker && marker.photo) {
-      placePhoto.src = marker.photo;
+    if (item._markerPhoto) {
+      placePhoto.src = item._markerPhoto;
       placePhoto.classList.remove('hidden');
       placeWrap.classList.add('has-photo');
     } else {
@@ -793,10 +901,18 @@ async function recordAnswer(knew) {
     learnUnknown += 1;
   }
 
-  const marker = currentMarkers.find(function (m) { return m.id === learnMarkerId; });
+  const marker = (item._markerId && currentMarkers.find(function (m) { return m.id === item._markerId; })) ||
+    (learnMarkerId ? currentMarkers.find(function (m) { return m.id === learnMarkerId; }) : null) ||
+    (item._markerId ? await getMarker(item._markerId) : null);
   if (marker) {
     const idx = marker.items.findIndex(function (i) { return i.id === item.id; });
-    if (idx >= 0) marker.items[idx] = item;
+    if (idx >= 0) {
+      const persistedItem = Object.assign({}, item);
+      delete persistedItem._markerId;
+      delete persistedItem._markerTitle;
+      delete persistedItem._markerPhoto;
+      marker.items[idx] = persistedItem;
+    }
     if (!marker.stats) marker.stats = { timesAsked: 0, timesKnown: 0, timesUnknown: 0, lastAsked: null };
     marker.stats.timesAsked += 1;
     if (knew) marker.stats.timesKnown += 1;
@@ -998,6 +1114,92 @@ function closeQuiz() {
   }
 }
 
+/* ===== Konfigurierte Lernrunde ===== */
+
+function saveSettingsFromUI() {
+  appSettings.questionFilter = document.getElementById('setting-filter').value;
+  appSettings.questionCount = document.getElementById('setting-count').value === 'all'
+    ? 'all' : Number(document.getElementById('setting-count').value);
+  appSettings.questionScope = document.getElementById('setting-scope').value;
+  appSettings.shuffle = document.getElementById('setting-shuffle').checked;
+  saveSettings();
+  updateSettingsSummary();
+}
+
+function renderSettingsUI() {
+  const filter = document.getElementById('setting-filter');
+  if (!filter) return;
+  filter.value = appSettings.questionFilter;
+  document.getElementById('setting-count').value = String(appSettings.questionCount);
+  document.getElementById('setting-scope').value = appSettings.questionScope;
+  document.getElementById('setting-shuffle').checked = appSettings.shuffle !== false;
+  updateSettingsSummary();
+}
+
+function updateSettingsSummary() {
+  const el = document.getElementById('settings-summary');
+  if (!el) return;
+  const filterText = { all: 'Alle Lernpunkte', quiz: 'Nur fürs Quiz freigegebene', wrong: 'Nur zu wiederholende' }[appSettings.questionFilter] || 'Alle Lernpunkte';
+  const countText = appSettings.questionCount === 'all' ? 'alle' : String(appSettings.questionCount);
+  const scopeText = appSettings.questionScope === 'current' ? 'aktueller Raum' : 'alle Räume';
+  el.textContent = filterText + ' · ' + countText + ' · ' + scopeText + (appSettings.shuffle !== false ? ' · zufällig' : ' · Reihenfolge');
+}
+
+async function startConfiguredLearning() {
+  const rooms = await getAllRooms();
+  if (!rooms.length) {
+    alert('Noch kein Raum vorhanden.');
+    return;
+  }
+
+  let selectedRooms = rooms;
+  if (appSettings.questionScope === 'current') {
+    let room = rooms.find(function (r) { return r.id === currentRoomId; });
+    if (!room) room = rooms[0];
+    selectedRooms = [room];
+  }
+
+  const markers = [];
+  for (let i = 0; i < selectedRooms.length; i++) {
+    const ms = await getMarkersByRoom(selectedRooms[i].id);
+    ms.forEach(function (m) { markers.push(m); });
+  }
+
+  let items = [];
+  markers.forEach(function (m) {
+    (m.items || []).forEach(function (it) {
+      const valid = (it.question && it.question.trim()) || (it.answer && it.answer.trim());
+      if (!valid) return;
+      if (appSettings.questionFilter === 'quiz' && it.useInQuiz === false) return;
+      if (appSettings.questionFilter === 'wrong' && !((it.stats && it.stats.incorrect > 0) && (it.stats.mastery || 0) < 2)) return;
+      items.push(Object.assign({}, it, { _markerId: m.id, _markerTitle: m.title || 'Merkpunkt', _markerPhoto: m.photo || null }));
+    });
+  });
+
+  if (!items.length) {
+    const msg = appSettings.questionFilter === 'wrong'
+      ? 'Keine zu wiederholenden Lernpunkte gefunden.'
+      : 'Keine passenden Lernpunkte für diese Einstellung gefunden.';
+    alert(msg);
+    return;
+  }
+
+  if (appSettings.shuffle !== false) items = shuffle(items);
+  if (appSettings.questionCount !== 'all') items = items.slice(0, Number(appSettings.questionCount));
+
+  learnMarkerId = null;
+  onlyWrongMode = appSettings.questionFilter === 'wrong';
+  learnQueue = items;
+  learnIndex = 0;
+  learnKnown = 0;
+  learnUnknown = 0;
+  document.getElementById('learn-summary').classList.add('hidden');
+  document.getElementById('learn-question-block').classList.remove('hidden');
+  document.getElementById('learn-solution').classList.add('hidden');
+  showLearnItem();
+  views.learn.classList.add('active');
+}
+
 /* ===== Statistik ===== */
 
 async function renderStats() {
@@ -1054,6 +1256,7 @@ async function renderStats() {
 
 async function exportData() {
   const data = await exportAllData();
+  data.settings = appSettings;
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1074,6 +1277,11 @@ async function importData(e) {
       return;
     }
     const result = await restoreAllData(data);
+    if (data.settings && typeof data.settings === 'object') {
+      appSettings = Object.assign({}, DEFAULT_SETTINGS, data.settings);
+      saveSettings();
+      renderSettingsUI();
+    }
     currentRoomId = null;
     currentMarkers = [];
     await renderRoomList();
