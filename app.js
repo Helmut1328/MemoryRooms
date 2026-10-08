@@ -303,9 +303,12 @@ function renderMarkers() {
     el.dataset.id = marker.id;
     el.style.left = marker.x + '%';
     el.style.top = marker.y + '%';
-    el.innerHTML =
-      '<span class="marker-num">' + (idx + 1) + '</span>' +
-      '<span class="marker-label">' + escapeHtml(marker.title || '?') + '</span>';
+    const markerPhoto = marker.photo
+      ? '<img class="marker-photo" src="' + marker.photo + '" alt="">'
+      : '<span class="marker-num">' + (idx + 1) + '</span>';
+    el.innerHTML = markerPhoto +
+      '<span class="marker-label">' + escapeHtml(marker.title || '?') + '</span>' +
+      (countItems(marker) ? '<span class="marker-count">' + countItems(marker) + '</span>' : '');
     el.addEventListener('click', function (e) {
       if (isDragging) return;
       e.stopPropagation();
@@ -330,6 +333,17 @@ function openMarkerMenu(marker) {
   document.getElementById('menu-marker-meta').textContent = n > 0
     ? n + ' Lernpunkt' + (n !== 1 ? 'e' : '') + ' · ' + itemProgressPercent(marker) + ' % beherrscht'
     : 'Noch keine Lernpunkte angelegt';
+
+  const menuPhotoWrap = document.getElementById('menu-marker-photo-wrap');
+  const menuPhoto = document.getElementById('menu-marker-photo');
+  if (marker.photo) {
+    menuPhoto.src = marker.photo;
+    menuPhotoWrap.classList.remove('hidden');
+  } else {
+    menuPhoto.src = '';
+    menuPhotoWrap.classList.add('hidden');
+  }
+
   const learnBtn = document.getElementById('btn-menu-learn');
   learnBtn.disabled = n === 0;
   learnBtn.style.opacity = n === 0 ? '0.5' : '1';
@@ -448,7 +462,11 @@ function renderItemsList() {
   editingItems.forEach(function (item, idx) {
     const row = document.createElement('div');
     row.className = 'item-row';
+    const thumb = item.photo
+      ? '<img class="item-row-thumb" src="' + item.photo + '" alt="">'
+      : '<div class="item-row-thumb item-row-thumb-empty">🧠</div>';
     row.innerHTML =
+      thumb +
       '<div class="item-row-main">' +
       '<strong>' + (idx + 1) + '. ' + escapeHtml(item.title || item.question || 'Lernpunkt') + '</strong>' +
       '<span>' + escapeHtml(truncate(item.question || item.answer || '', 50)) + '</span>' +
@@ -702,6 +720,22 @@ function startLearn(marker, wrongOnly) {
 
 function showLearnItem() {
   const item = learnQueue[learnIndex];
+  const marker = currentMarkers.find(function (m) { return m.id === learnMarkerId; });
+  const placeTitle = document.getElementById('learn-place-title');
+  const placeWrap = document.getElementById('learn-place-wrap');
+  const placePhoto = document.getElementById('learn-place-photo');
+  if (placeTitle) placeTitle.textContent = marker ? (marker.title || 'Merkpunkt') : 'Merkpunkt';
+  if (placeWrap && placePhoto) {
+    if (marker && marker.photo) {
+      placePhoto.src = marker.photo;
+      placePhoto.classList.remove('hidden');
+      placeWrap.classList.add('has-photo');
+    } else {
+      placePhoto.src = '';
+      placePhoto.classList.add('hidden');
+      placeWrap.classList.remove('has-photo');
+    }
+  }
   document.getElementById('learn-progress').textContent =
     (learnIndex + 1) + ' von ' + learnQueue.length;
   document.getElementById('learn-question-text').textContent =
@@ -716,7 +750,7 @@ function showLearnItem() {
   }
   const hintEl = document.getElementById('learn-hint');
   if (item.hint) {
-    hintEl.textContent = 'Merksatz: ' + item.hint;
+    hintEl.textContent = '💡 Gedankenstütze · ' + item.hint;
     hintEl.classList.remove('hidden');
   } else {
     hintEl.classList.add('hidden');
@@ -909,7 +943,7 @@ async function checkQuizAnswer() {
   fb.className = correct ? 'feedback-ok' : 'feedback-bad';
   const hintEl = document.getElementById('quiz-feedback-hint');
   if (item.hint) {
-    hintEl.textContent = 'Merksatz: ' + item.hint;
+    hintEl.textContent = '💡 Gedankenstütze · ' + item.hint;
     hintEl.classList.remove('hidden');
   } else {
     hintEl.classList.add('hidden');

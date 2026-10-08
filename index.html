@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0c0c14">
+  <meta name="theme-color" content="#f5efe6">
   <meta name="description" content="MemoryRooms – Lernen mit dem Memory-Palace-Prinzip">
   <title>MemoryRooms</title>
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
   <div id="app">
@@ -33,6 +33,9 @@
             <div class="room-floor"></div>
             <div class="room-baseboard"></div>
             <div class="room-light-beam"></div>
+            <div class="room-ceiling-lamp"><span></span></div>
+            <div class="room-rug"></div>
+            <div class="room-plant"><span class="plant-pot"></span><span class="leaf l1"></span><span class="leaf l2"></span><span class="leaf l3"></span><span class="leaf l4"></span></div>
             <div class="room-window"><div class="window-frame"></div><div class="window-glass"></div><div class="window-sill"></div></div>
             <div class="room-picture"><div class="picture-frame"></div><div class="picture-art"></div></div>
             <div class="room-shelf">
@@ -74,6 +77,10 @@
           <p class="marker-title" id="menu-marker-title">Tisch</p>
           <p class="menu-desc" id="menu-marker-desc"></p>
           <p class="menu-meta" id="menu-marker-meta"></p>
+          <div id="menu-marker-photo-wrap" class="menu-marker-photo-wrap hidden">
+            <img id="menu-marker-photo" class="menu-marker-photo" alt="Bild des Merkpunkts">
+            <span>Gedankenstütze zum Ort</span>
+          </div>
           <p class="menu-help">Hier kannst du den Merkpunkt ändern oder seine Lernpunkte bearbeiten.</p>
           <div class="learn-actions">
             <button id="btn-menu-learn" class="btn btn-primary btn-large" type="button">🧠 Lernen</button>
@@ -86,9 +93,10 @@
       <!-- Lernmodus (Unterpunkte nacheinander) -->
       <section id="view-learn" class="view overlay">
         <div class="learn-card" id="learn-card">
+          <div class="learn-place" id="learn-place-wrap"><img id="learn-place-photo" class="hidden" alt="Gedächtnisanker"><div><span class="eyebrow">GEDÄCHTNISANKER</span><strong id="learn-place-title">Merkpunkt</strong></div></div>
           <div id="learn-progress" class="learn-progress">1 von 4</div>
           <div id="learn-question-block">
-            <p class="prompt">Was hast du hier gespeichert?</p>
+            <p class="prompt">JETZT AUS DEM GEDÄCHTNIS</p>
             <p class="learn-q" id="learn-question-text"></p>
             <div class="learn-actions" id="learn-actions-question">
               <button id="btn-show-solution" class="btn btn-primary btn-large" type="button">Lösung anzeigen</button>
@@ -98,7 +106,7 @@
           <div id="learn-solution" class="learn-solution hidden">
             <p class="content" id="learn-content"></p>
             <img id="learn-photo" class="learn-photo hidden" alt="Merkhilfe">
-            <p class="hint" id="learn-hint"></p>
+            <div class="thought-card" id="learn-hint"></div>
             <div class="learn-actions" id="learn-actions-result">
               <button id="btn-knew" class="btn btn-success btn-large" type="button">✅ Gewusst</button>
               <button id="btn-not-knew" class="btn btn-danger btn-large" type="button">❌ Nicht gewusst</button>
@@ -131,7 +139,7 @@
           </div>
           <div id="quiz-feedback" class="quiz-feedback hidden">
             <p id="quiz-feedback-text"></p>
-            <p class="hint" id="quiz-feedback-hint"></p>
+            <div class="thought-card" id="quiz-feedback-hint"></div>
             <div class="learn-actions">
               <button id="btn-quiz-next" class="btn btn-primary btn-large" type="button">Weiter</button>
             </div>
@@ -162,7 +170,7 @@
           <label>Beschreibung (optional)
             <input type="text" id="input-marker-desc" placeholder="z. B. Informationen über Frankreich" maxlength="120" autocomplete="off">
           </label>
-          <label class="photo-label">Foto zum Merkpunkt (optional)
+          <label class="photo-label">Foto zum Merkpunkt – deine visuelle Gedankenstütze (optional)
             <input type="file" id="input-marker-photo" accept="image/*">
             <div id="photo-preview" class="photo-preview hidden">
               <img id="photo-preview-img" alt="Vorschau">
@@ -199,10 +207,10 @@
           <label>Antwort
             <textarea id="input-item-answer" placeholder="Paris" rows="2"></textarea>
           </label>
-          <label>Merksatz (optional)
-            <input type="text" id="input-item-hint" placeholder="Paris → Eiffelturm" maxlength="120" autocomplete="off">
+          <label>Gedankenstütze / Eselsbrücke <small>erst nach der Antwort sichtbar</small>
+            <input type="text" id="input-item-hint" placeholder="z. B. Paris → Eiffelturm → Frankreich" maxlength="120" autocomplete="off">
           </label>
-          <label class="photo-label">Foto (optional)
+          <label class="photo-label">Foto als zusätzliche Gedankenstütze (optional)
             <input type="file" id="input-item-photo" accept="image/*">
             <div id="item-photo-preview" class="photo-preview hidden">
               <img id="item-photo-preview-img" alt="Vorschau">
@@ -273,7 +281,7 @@
     </nav>
   </div>
 
-  <script src="db.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="db.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
