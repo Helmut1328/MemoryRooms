@@ -122,7 +122,23 @@
         <div class="settings-placeholder">
           <h2>⚙️ Einstellungen</h2>
           <p>Kommt in einem späteren Schritt.</p>
-          <button id="btn-export-data" class="btn btn-secondary">Daten exportieren (JSON)</button>
+          <button id="btn-export-data" class="btn btn-secondary">📤 Backup exportieren</button>
+
+          <label class="btn btn-secondary" for="input-import-data">
+            📥 Backup importieren
+          </label>
+          <input
+            type="file"
+            id="input-import-data"
+            accept="application/json,.json"
+            class="hidden"
+          >
+
+          <p class="settings-note">
+            Deine Lerninhalte bleiben lokal auf diesem Gerät.
+            Exportiere regelmäßig ein Backup, damit du sie sichern kannst.
+          </p>
+
           <button id="btn-clear-data" class="btn btn-danger">Alle Daten löschen</button>
         </div>
       </section>
