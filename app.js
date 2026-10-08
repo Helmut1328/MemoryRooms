@@ -159,6 +159,7 @@ function setupEventListeners() {
 
   // Einstellungen
   document.getElementById('btn-export-data').addEventListener('click', exportData);
+  document.getElementById('input-import-data').addEventListener('change', handleImportFile);
   document.getElementById('btn-clear-data').addEventListener('click', clearData);
 
   // Drag & Drop für Merkpunkte (Touch + Mouse)
@@ -573,14 +574,84 @@ async function renderStats() {
 
 // ===== Einstellungen =====
 async function exportData() {
-  const data = await exportAllData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `memoryrooms-backup-${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  try {
+    const data = await exportAllData();
+    const blob = new Blob(
+      [JSON.stringify(data, null, 2)],
+      { type: 'application/json' }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `memoryrooms-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // URL erst nach dem Klick freigeben.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    alert('Backup wurde erstellt.');
+  } catch (err) {
+    console.error('Exportfehler:', err);
+    alert('Backup konnte nicht erstellt werden.');
+  }
+}
+
+/**
+ * Backup-Datei vom Gerät auswählen und importieren.
+ */
+async function handleImportFile(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    if (data.app !== 'MemoryRooms' || !Array.isArray(data.rooms) || !Array.isArray(data.markers)) {
+      throw new Error('Ungültiges MemoryRooms-Backup.');
+    }
+
+    const roomCount = data.rooms.length;
+    const markerCount = data.markers.length;
+
+    const confirmed = confirm(
+      `Backup importieren?\n\n` +
+      `${roomCount} Räume\n` +
+      `${markerCount} Merkpunkte\n\n` +
+      `ACHTUNG: Der aktuelle lokale Datenbestand wird durch das Backup ersetzt.`
+    );
+
+    if (!confirmed) return;
+
+    // Zweite Sicherheitsabfrage, weil der Import vorhandene Daten ersetzt.
+    const confirmedAgain = confirm(
+      'Letzte Sicherheitsabfrage:\n\n' +
+      'Hast du ein aktuelles Backup deiner jetzigen Daten?\n\n' +
+      'OK = Backup importieren'
+    );
+
+    if (!confirmedAgain) return;
+
+    await importAllData(data);
+
+    currentRoomId = null;
+    currentMarkers = [];
+    currentLearnMarker = null;
+
+    await ensureDemoRoom();
+    await renderRoomList();
+    showView('rooms');
+
+    alert('Backup erfolgreich importiert.');
+  } catch (err) {
+    console.error('Importfehler:', err);
+    alert('Backup konnte nicht importiert werden. Die vorhandenen Daten wurden nicht verändert.');
+  }
 }
 
 async function clearData() {

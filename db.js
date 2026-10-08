@@ -4,7 +4,9 @@
  */
 
 const DB_NAME = 'MemoryRoomsDB';
-const DB_VERSION = 1;
+// Datenbank-Version. Beim Erhöhen wird onupgradeneeded ausgeführt.
+// Bestehende Daten bleiben erhalten, solange wir Stores nicht löschen.
+const DB_VERSION = 2;
 const STORE_ROOMS = 'rooms';
 const STORE_MARKERS = 'markers';
 
@@ -178,7 +180,75 @@ async function exportAllData() {
     const markers = await getMarkersByRoom(room.id);
     allMarkers.push(...markers);
   }
-  return { rooms, markers: allMarkers, exportedAt: new Date().toISOString() };
+
+  // Backup-Format versionieren, damit spätere App-Versionen
+  // das Format erkennen und bei Bedarf migrieren können.
+  return {
+    backupVersion: 1,
+    app: 'MemoryRooms',
+    exportedAt: new Date().toISOString(),
+    rooms,
+    markers: allMarkers
+  };
+}
+
+/**
+ * Backup importieren.
+ * Vor dem Überschreiben muss die aufrufende Funktion bestätigen.
+ */
+async function importAllData(data) {
+  if (!data || data.app !== 'MemoryRooms') {
+    throw new Error('Ungültiges MemoryRooms-Backup.');
+  }
+
+  if (!Array.isArray(data.rooms) || !Array.isArray(data.markers)) {
+    throw new Error('Das Backup enthält keine gültigen Daten.');
+  }
+
+  const database = await openDB();
+
+  return new Promise((resolve, reject) => {
+    const tx = database.transaction(
+      [STORE_ROOMS, STORE_MARKERS],
+      'readwrite'
+    );
+
+    const roomStore = tx.objectStore(STORE_ROOMS);
+    const markerStore = tx.objectStore(STORE_MARKERS);
+
+    // Erst den aktuellen Datenbestand ersetzen.
+    roomStore.clear();
+    markerStore.clear();
+
+    for (const room of data.rooms) {
+      if (!room || typeof room.id !== 'string' || typeof room.name !== 'string') {
+        tx.abort();
+        reject(new Error('Ungültiger Raum im Backup.'));
+        return;
+      }
+      roomStore.put(room);
+    }
+
+    const roomIds = new Set(data.rooms.map(room => room.id));
+
+    for (const marker of data.markers) {
+      if (
+        !marker ||
+        typeof marker.id !== 'string' ||
+        typeof marker.roomId !== 'string' ||
+        !roomIds.has(marker.roomId)
+      ) {
+        tx.abort();
+        reject(new Error('Ungültiger Merkpunkt im Backup.'));
+        return;
+      }
+      markerStore.put(marker);
+    }
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('Import fehlgeschlagen.'));
+    tx.onabort = () => reject(tx.error || new Error('Import abgebrochen.'));
+  });
 }
 
 /**
