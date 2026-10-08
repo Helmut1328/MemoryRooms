@@ -1,24 +1,14 @@
-# MemoryRooms v11
+# MemoryRooms v13
 
-MemoryRooms – Lernen mit dem Loci-/Memory-Palace-Prinzip.
+Korrigierte Version für iPhone/iPad.
 
-## v11 – Gedächtnisweg
-- Schematischer Raumplan in Draufsicht
-- Persönliche Reihenfolge der Merkpunkte über ▲ / ▼
-- Geführter Rundgang durch die Merkpunkte
-- Kleine Lernpunkt-Fotos können direkt im Raum als visuelle Gedankenstützen angezeigt werden
-- Fotos bleiben lokal in IndexedDB
-- Bestehende Räume, Merkpunkte, Lernpunkte und Fortschritt bleiben erhalten
-- Keine KI, keine Cloud-Datenbank
-- Cache-Busting für `v11` bei CSS, JavaScript und Raumfoto
+- Themenräume sind jetzt allgemein: eigener Name, keine fest eingebauten Bundesländer.
+- Bundesländer bleiben nur ein mögliches eigenes Thema des Nutzers.
+- Lösung wird beim Lernen nicht vor der eigenen Antwort angezeigt.
+- Merkpunkt-Titel und Beschreibung verraten bei neuen Themenräumen keine Lösung.
+- Raumeditor enthält sechs auswählbare Hintergrundräume: Wohnzimmer, Küche, Schlafzimmer, Büro, Werkstatt und Garten.
+- Eigenes Raumfoto bleibt möglich.
+- Bestehende IndexedDB-Struktur bleibt erhalten.
+- Keine KI, keine Cloud-Datenbank, keine externe API.
 
-## Dateien
-- index.html
-- app.js
-- db.js
-- styles.css
-- room-livingroom.jpg
-- room-livingroom.png
-
-## Wichtig
-Vor einem größeren Update Backup über Einstellungen exportieren. Die Datenbank bleibt bei Version 3; v11 ergänzt nur Datenfelder abwärtskompatibel.
+Hinweis: Nur das Wohnzimmer verwendet das vorhandene fotorealistische Foto. Die weiteren Vorlagen sind lokal eingebettete, unterschiedliche Raum-Illustrationen, damit die App ohne externe Bilddienste funktioniert.
