@@ -518,6 +518,15 @@ async function exportRoom(room) {
     alert('Bitte den Raum zuerst speichern, bevor du ihn exportierst.');
     return;
   }
+  const ok = confirm(
+    'Raum „' + (room.name || '') + '“ als Datei speichern?\n\n' +
+    '• Die Datei wird nur auf diesem Gerät gespeichert (Download-Ordner).\n' +
+    '• Es wird nichts in die Cloud oder zu GitHub hochgeladen.\n' +
+    '• Du kannst die Datei später über „Raum importieren“ wieder einfügen oder an andere weitergeben.\n\n' +
+    'Weiter?'
+  );
+  if (!ok) return;
+
   const ms = await markers(room.id);
   const payload = {
     app: 'MemoryRooms',
@@ -555,10 +564,20 @@ async function exportRoom(room) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   const safe = String(room.name || 'Raum').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 40);
+  const filename = 'MemoryRooms-Raum-' + safe + '.json';
   a.href = URL.createObjectURL(blob);
-  a.download = 'MemoryRooms-Raum-' + safe + '.json';
+  a.download = filename;
   a.click();
   setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  setTimeout(function () {
+    alert(
+      'Export gestartet.\n\n' +
+      'Datei: ' + filename + '\n\n' +
+      'Sie liegt im Download-Ordner dieses Geräts.\n' +
+      'Falls das System „Öffnen mit…“ anbietet (z. B. GitHub-App): ' +
+      'einfach „In Dateien / Downloads speichern“ wählen – die App lädt nichts hoch.'
+    );
+  }, 300);
 }
 
 async function importRoomFile(file) {
