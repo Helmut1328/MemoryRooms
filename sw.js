@@ -1,6 +1,6 @@
 // MemoryRooms Service Worker: macht die App offline nutzbar.
 // Strategie: erst Netzwerk (damit Updates ankommen), bei Fehler aus dem Cache.
-const CACHE = 'memoryrooms-v15';
+const CACHE = 'memoryrooms-v15-1';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './room-livingroom.jpg'];
 
 self.addEventListener('install', event => {

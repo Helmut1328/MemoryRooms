@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#f5efe6">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>MemoryRooms v15</title>
+<title>MemoryRooms v15.1</title>
 <style>
 :root{--paper:#fffaf3;--bg:#f5efe6;--ink:#332a23;--muted:#76695d;--line:#ded1c1;--blue:#2376d8;--green:#2f8b4b;--red:#b94338;--orange:#c9741a;--shadow:0 14px 40px rgba(55,38,22,.14);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
@@ -106,7 +106,7 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
   <div class="panel"><h2>🧠 So lernst du richtig</h2>
     <p style="font-size:13px;line-height:1.5;margin:0">1. Verknüpfe jeden Lernpunkt mit einem <b>übertriebenen, bewegten Bild</b> an seinem Ort.<br>2. <b>Erst abrufen, dann nachschauen</b>: Tippe, was du weißt.<br>3. Bewerte ehrlich. „Nochmal" ist kein Scheitern, sondern der Lernmoment.<br>4. Üb <b>jeden Tag kurz</b>: Die App sagt dir, was fällig ist.<br>5. Geh den Raum auch mal <b>im Kopf rückwärts oder zufällig</b> ab.</p>
   </div>
-  <p class="muted" style="text-align:center;font-size:11px">MemoryRooms v15</p>
+  <p class="muted" style="text-align:center;font-size:11px">MemoryRooms v15.1</p>
 </section>
 </main>
 
@@ -121,8 +121,9 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
   <div id="learnMain">
     <p class="prompt" id="learnPrompt">JETZT AUS DEM GEDÄCHTNIS</p><div class="learn-q" id="learnQuestion"></div>
     <div id="phaseAnswer">
+      <div class="hint hidden" id="hintStage" style="margin:0 0 10px"></div>
       <div id="typeBox" class="answer-box"><label class="field" style="margin:0"><span>Deine Antwort</span><textarea class="answer-input" id="typed" rows="2" placeholder="Was weißt du dazu?" autocomplete="off"></textarea></label><div class="actions two"><button class="btn btn-primary" id="checkTyped">Antwort prüfen</button><button class="btn btn-secondary" id="dontKnow">Weiß ich nicht</button></div></div>
-      <div id="thinkBox" class="answer-box hidden"><p style="margin:0 0 10px;font-size:13px">Denk zuerst an die Antwort, dann decke sie auf.</p><button class="btn btn-primary full" id="revealBtn">Lösung aufdecken</button></div>
+      <div id="thinkBox" class="answer-box hidden"><p style="margin:0 0 10px;font-size:13px">Denk zuerst an die Antwort, dann decke sie auf.</p><div class="actions two"><button class="btn btn-primary" id="revealBtn">Lösung aufdecken</button><button class="btn btn-secondary" id="thinkDont">Weiß ich nicht</button></div></div>
     </div>
     <div id="solution" class="solution hidden">
       <div class="eyebrow">LÖSUNG</div><div class="solution-answer" id="solutionText"></div><div class="your-answer hidden" id="yourAnswer"></div><div id="solutionPhotoWrap"></div><div class="hint hidden" id="solutionHint"></div><div class="feedback hidden" id="feedback"></div>
@@ -189,7 +190,7 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
 const DB='MemoryRoomsDB', ROOMS='rooms', MARKERS='markers', DBV=3;
 const INTERVALS=[0,1,3,7,14,30,60], MAX_BOX=6, MASTERED_BOX=3, SESSION_MAX=30, DAY=864e5, BACKUP_DAYS=14;
 let db,currentRoom=null,currentRoomId=null,currentMarkers=[],editMarkerId=null,editItems=[],markerPhoto=null,editingRoom=null,roomPhoto=null,arrange=false,selectedPreset='livingroom';
-let queue=[],qIndex=0,known=0,unknown=0,sessionLabel='';
+let queue=[],qIndex=0,known=0,unknown=0,sessionLabel='',hintUsed=false;
 let recallList=[],recallIdx=0,recallScore={all:0,part:0,none:0};
 
 const $=sel=>document.getElementById(sel);
@@ -555,7 +556,13 @@ function showLearnItem(){
   $('learnQuestion').textContent=it.question||it.title;
   $('solution').classList.add('hidden');$('phaseAnswer').classList.remove('hidden');
   const typed=LS.get('mr_typed',true);$('typeBox').classList.toggle('hidden',!typed);$('thinkBox').classList.toggle('hidden',typed);
-  $('typed').value='';if(typed)setTimeout(()=>$('typed').focus(),80);
+  $('typed').value='';hintUsed=false;$('hintStage').classList.add('hidden');dontLabels('Weiß ich nicht');if(typed)setTimeout(()=>$('typed').focus(),80);
+}
+function dontLabels(t){$('dontKnow').textContent=t;$('thinkDont').textContent=t}
+function dontKnow(){
+  const it=queue[qIndex],h=(it.hint||'').trim();
+  if(h&&!hintUsed){hintUsed=true;$('hintStage').textContent='💡 Eselsbrücke: '+h;$('hintStage').classList.remove('hidden');dontLabels('Lösung zeigen');return}
+  reveal('','unknown');
 }
 function reveal(userText,mode){
   const it=queue[qIndex];
@@ -567,8 +574,8 @@ function reveal(userText,mode){
   if(mode==='unknown'){fb='Kein Problem. Präge dir die Lösung jetzt bewusst ein und stell dir das Bild an diesem Ort vor.';suggest=0}
   else if(mode==='typed'){
     const v=(userText||'').trim(),a=norm(it.answer),u=norm(v);
-    if(u&&u===a){fb='✅ Richtig!';cls='ok';suggest=2}
-    else if(u&&a.length>=5&&a.length<=40&&lev(u,a)<=Math.max(1,Math.floor(a.length*.1))){fb='🟡 Fast richtig, vermutlich ein Tippfehler. Vergleiche mit der Lösung.';cls='ok';suggest=2}
+    if(u&&u===a){fb=hintUsed?'✅ Richtig, mit Hilfe der Eselsbrücke.':'✅ Richtig!';cls='ok';suggest=hintUsed?1:2}
+    else if(u&&a.length>=5&&a.length<=40&&lev(u,a)<=Math.max(1,Math.floor(a.length*.1))){fb='🟡 Fast richtig, vermutlich ein Tippfehler. Vergleiche mit der Lösung.';cls='ok';suggest=hintUsed?1:2}
     else if(a.length>40){fb='Vergleiche deine Antwort mit der Lösung und bewerte ehrlich.'}
     else if(!u){fb='Du hast nichts eingegeben.';cls='bad';suggest=0}
     else{fb='❌ Noch nicht richtig. Vergleiche mit der Lösung.';cls='bad';suggest=0}
@@ -767,7 +774,7 @@ $('markerFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;marker
 $('markerPhotoRemove').onclick=()=>{markerPhoto=null;$('markerFile').value='';$('markerPhotoRemove').classList.add('hidden')};
 $('deleteMarker').onclick=async()=>{if(!editMarkerId||!confirm('Merkpunkt und Lernpunkte wirklich löschen?'))return;await del(MARKERS,editMarkerId);$('markerOverlay').classList.remove('active');currentMarkers=await markers(currentRoomId);currentMarkers.sort(byOrder);renderMarkers()};
 $('checkTyped').onclick=()=>reveal($('typed').value,'typed');
-$('dontKnow').onclick=()=>reveal('','unknown');
+$('dontKnow').onclick=dontKnow;$('thinkDont').onclick=dontKnow;
 $('revealBtn').onclick=()=>reveal(null,'think');
 document.querySelectorAll('.rate-grid .btn').forEach(b=>b.onclick=()=>rate(Number(b.dataset.rate)));
 $('closeLearn').onclick=closeLearn;$('doneClose').onclick=closeLearn;
