@@ -17,3 +17,11 @@ Daten (Räume, Lernfortschritt) bleiben erhalten. **Trotzdem vorher Backup mache
 ## Service Worker
 
 Cache-Name: `memoryrooms-v15-2-mod`. Alte Caches werden beim Aktivieren gelöscht.
+
+
+## Einzelne Räume teilen
+
+- **Export:** Raum öffnen → ✏️ Raum (oder ⋯ auf der Karte) → **Raum exportieren**  
+  Speichert Name, Hintergrund, Dekorationen, Merkpunkte und Lernpunkte (ohne deinen persönlichen Lernfortschritt).
+- **Import:** Auf der Startseite → **Raum importieren** → JSON-Datei wählen.  
+  Der Raum wird als Kopie eingefügt; bei gleichem Namen wird „(2)“ angehängt.

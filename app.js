@@ -463,7 +463,7 @@ function updatePresetUI(){document.querySelectorAll('#roomPresetGrid [data-prese
 function openRoomEditor(r){
   editingRoom=r;$('roomName').value=r.name||'';$('roomFile').value='';$('roomNumOnly').checked=!!r.numberOnly;roomPhoto=r.photo||null;
   selectedPreset=r.roomPreset||(r.photo&&r.photo!=='room-livingroom.jpg'?'custom':'livingroom');
-  updatePresetUI();$('deleteRoom').classList.toggle('hidden',!r.id);$('roomOverlay').classList.add('active');
+  updatePresetUI();$('deleteRoom').classList.toggle('hidden',!r.id);$('exportRoom').classList.toggle('hidden',!r.id);$('roomOverlay').classList.add('active');
 }
 async function saveRoomEditor(){
   const n=$('roomName').value.trim();if(!n)return alert('Bitte einen Raumnamen eingeben.');
@@ -511,6 +511,131 @@ $('optStats').checked=LS.get('mr_stats',false);
   try{if(navigator.storage&&navigator.storage.persisted){txt+=(await navigator.storage.persisted())?'dauerhaft gesichert ✅':'vom Browser löschbar. Am sichersten: zum Home-Bildschirm hinzufügen und regelmäßig sichern.'}else txt+='Status unbekannt.'}catch(e){txt+='Status unbekannt.'}
   $('storageInfo').textContent=txt;
 }
+
+/* ---------- Einzelnen Raum exportieren / importieren ---------- */
+async function exportRoom(room) {
+  if (!room || !room.id) {
+    alert('Bitte den Raum zuerst speichern, bevor du ihn exportierst.');
+    return;
+  }
+  const ms = await markers(room.id);
+  const payload = {
+    app: 'MemoryRooms',
+    type: 'room',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    room: {
+      name: room.name,
+      icon: room.icon || '🏠',
+      photo: room.photo || null,
+      roomPreset: room.roomPreset || null,
+      numberOnly: !!room.numberOnly,
+      decor: Array.isArray(room.decor) ? room.decor : []
+    },
+    markers: ms.map(m => ({
+      title: m.title || '',
+      description: m.description || '',
+      content: m.content || '',
+      hint: m.hint || '',
+      photo: m.photo || null,
+      x: m.x,
+      y: m.y,
+      routeOrder: m.routeOrder || 0,
+      items: (m.items || []).map(it => ({
+        title: it.title || '',
+        question: it.question || '',
+        answer: it.answer || '',
+        hint: it.hint || '',
+        photo: it.photo || null,
+        showInRoom: !!it.showInRoom,
+        useInQuiz: it.useInQuiz !== false
+      }))
+    }))
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  const safe = String(room.name || 'Raum').replace(/[\\/:*?"<>|]+/g, '_').slice(0, 40);
+  a.href = URL.createObjectURL(blob);
+  a.download = 'MemoryRooms-Raum-' + safe + '.json';
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+}
+
+async function importRoomFile(file) {
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch (e) {
+    alert('Die Datei ist kein gültiges JSON.');
+    return;
+  }
+  if (!data || data.app !== 'MemoryRooms' || data.type !== 'room' || !data.room) {
+    if (data && data.app === 'MemoryRooms' && Array.isArray(data.rooms)) {
+      alert('Das ist ein komplettes Backup, kein einzelner Raum. Bitte unter Einstellungen → Backup importieren verwenden.');
+      return;
+    }
+    alert('Ungültige Raum-Datei. Erwarte eine MemoryRooms-Raum-Export-Datei.');
+    return;
+  }
+  const src = data.room;
+  const name = (src.name || 'Importierter Raum').trim() || 'Importierter Raum';
+  const existing = await rooms();
+  let finalName = name;
+  const names = new Set(existing.map(function (r) { return r.name; }));
+  if (names.has(finalName)) {
+    let n = 2;
+    while (names.has(finalName + ' (' + n + ')')) n++;
+    finalName = finalName + ' (' + n + ')';
+  }
+  const newRoom = {
+    id: uid(),
+    name: finalName,
+    icon: src.icon || '🏠',
+    photo: src.photo || null,
+    roomPreset: src.roomPreset || null,
+    numberOnly: !!src.numberOnly,
+    decor: Array.isArray(src.decor)
+      ? src.decor.map(function (d) { return Object.assign({}, d, { id: uid() }); })
+      : [],
+    createdAt: new Date().toISOString()
+  };
+  await saveRoom(newRoom);
+  const markerList = Array.isArray(data.markers) ? data.markers : [];
+  for (let i = 0; i < markerList.length; i++) {
+    const m = markerList[i];
+    const items = Array.isArray(m.items)
+      ? m.items.map(function (it) {
+          return itemTemplate({
+            title: it.title || '',
+            question: it.question || '',
+            answer: it.answer || '',
+            hint: it.hint || '',
+            photo: it.photo || null,
+            showInRoom: !!it.showInRoom,
+            useInQuiz: it.useInQuiz !== false
+          });
+        })
+      : [];
+    await saveMarker({
+      id: uid(),
+      roomId: newRoom.id,
+      title: m.title || '',
+      description: m.description || '',
+      content: m.content || '',
+      hint: m.hint || '',
+      photo: m.photo || null,
+      x: typeof m.x === 'number' ? m.x : 50,
+      y: typeof m.y === 'number' ? m.y : 50,
+      routeOrder: m.routeOrder != null ? m.routeOrder : i + 1,
+      items: items,
+      stats: { timesAsked: 0, timesKnown: 0, timesUnknown: 0, lastAsked: null, recallTotal: 0, recallAll: 0 }
+    });
+  }
+  await renderRooms();
+  alert('Raum „' + finalName + '“ importiert (' + markerList.length + ' Merkpunkte).');
+  openRoom(newRoom.id);
+}
+
 async function exportBackup(){
   const data={app:'MemoryRooms',backupVersion:4,rooms:await rooms(),markers:(await all(MARKERS)).map(markerNorm),days:LS.get('mr_days',[]),exportedAt:new Date().toISOString()};
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='memoryrooms-backup-'+dayKey()+'.json';document.body.appendChild(a);a.click();a.remove();
@@ -588,6 +713,9 @@ document.querySelectorAll('#roomPresetGrid [data-preset]').forEach(b=>b.onclick=
 $('roomFile').onchange=async e=>{if(!e.target.files[0])return;roomPhoto=await photoData(e.target.files[0],1400,.78);selectedPreset='custom';updatePresetUI()};
 $('saveRoom').onclick=saveRoomEditor;$('cancelRoom').onclick=()=>$('roomOverlay').classList.remove('active');$('deleteRoom').onclick=deleteRoomEditor;
 $('export').onclick=exportBackup;$('clear').onclick=clearAll;
+$('exportRoom').onclick=()=>{if(editingRoom)exportRoom(editingRoom)};
+$('importRoom').onchange=async e=>{const f=e.target.files[0];if(f)await importRoomFile(f);e.target.value=''};
+
 $('import').onchange=async e=>{const f=e.target.files[0];if(f)await importBackup(f);e.target.value=''};
 $('optTyped').onchange=e=>LS.set('mr_typed',e.target.checked);
 $('optStats').onchange=e=>LS.set('mr_stats',e.target.checked);

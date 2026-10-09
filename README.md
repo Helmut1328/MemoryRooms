@@ -24,6 +24,7 @@ MemoryRooms/   (alles flach, ohne Unterordner)
 - Code in logische Module aufgeteilt (db / spaced / app)
 - CSS ausgelagert
 - Optionaler Schalter „Anonyme Nutzungsstatistik“ (standardmäßig aus)
+- Einzelne Räume exportieren und importieren (teilen / wiederverwenden)
 - Service Worker cacht alle Modul-Dateien
 
 ## Deployment (GitHub Pages)
