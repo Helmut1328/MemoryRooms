@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#f5efe6">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>MemoryRooms v15.1</title>
+<title>MemoryRooms v15.2</title>
 <style>
 :root{--paper:#fffaf3;--bg:#f5efe6;--ink:#332a23;--muted:#76695d;--line:#ded1c1;--blue:#2376d8;--green:#2f8b4b;--red:#b94338;--orange:#c9741a;--shadow:0 14px 40px rgba(55,38,22,.14);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
@@ -60,6 +60,7 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
 .crop-box{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.5);cursor:move;touch-action:none}
 .crop-box .ch{position:absolute;width:26px;height:26px;background:var(--blue);border:3px solid #fff;border-radius:50%;touch-action:none}
 .ch[data-h=nw]{left:-13px;top:-13px}.ch[data-h=ne]{right:-13px;top:-13px}.ch[data-h=sw]{left:-13px;bottom:-13px}.ch[data-h=se]{right:-13px;bottom:-13px}
+.solution-answer .li{font-size:18px;font-weight:800;padding:2px 0}.solution-answer .li.ok{color:#216b36}.solution-answer .li.bad{color:#94372e}.li-extra{margin-top:8px;font-size:11px;font-weight:700;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -106,7 +107,7 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
   <div class="panel"><h2>🧠 So lernst du richtig</h2>
     <p style="font-size:13px;line-height:1.5;margin:0">1. Verknüpfe jeden Lernpunkt mit einem <b>übertriebenen, bewegten Bild</b> an seinem Ort.<br>2. <b>Erst abrufen, dann nachschauen</b>: Tippe, was du weißt.<br>3. Bewerte ehrlich. „Nochmal" ist kein Scheitern, sondern der Lernmoment.<br>4. Üb <b>jeden Tag kurz</b>: Die App sagt dir, was fällig ist.<br>5. Geh den Raum auch mal <b>im Kopf rückwärts oder zufällig</b> ab.</p>
   </div>
-  <p class="muted" style="text-align:center;font-size:11px">MemoryRooms v15.1</p>
+  <p class="muted" style="text-align:center;font-size:11px">MemoryRooms v15.2</p>
 </section>
 </main>
 
@@ -122,6 +123,7 @@ nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:8px 10px calc(8px 
     <p class="prompt" id="learnPrompt">JETZT AUS DEM GEDÄCHTNIS</p><div class="learn-q" id="learnQuestion"></div>
     <div id="phaseAnswer">
       <div class="hint hidden" id="hintStage" style="margin:0 0 10px"></div>
+      <div class="hint hidden" id="listHint" style="margin:0 0 10px"></div>
       <div id="typeBox" class="answer-box"><label class="field" style="margin:0"><span>Deine Antwort</span><textarea class="answer-input" id="typed" rows="2" placeholder="Was weißt du dazu?" autocomplete="off"></textarea></label><div class="actions two"><button class="btn btn-primary" id="checkTyped">Antwort prüfen</button><button class="btn btn-secondary" id="dontKnow">Weiß ich nicht</button></div></div>
       <div id="thinkBox" class="answer-box hidden"><p style="margin:0 0 10px;font-size:13px">Denk zuerst an die Antwort, dann decke sie auf.</p><div class="actions two"><button class="btn btn-primary" id="revealBtn">Lösung aufdecken</button><button class="btn btn-secondary" id="thinkDont">Weiß ich nicht</button></div></div>
     </div>
@@ -491,13 +493,14 @@ function renderItems(){
     d.innerHTML=`<div class="item-head"><strong>${esc(it.title||it.question||'Lernpunkt')}</strong><button class="item-delete" aria-label="Lernpunkt löschen">✕</button></div>
     <div class="field"><span>Titel (optional)</span><input class="it-title" value="${esc(it.title)}"></div>
     <div class="field"><span>Frage (optional)</span><input class="it-question" value="${esc(it.question)}"></div>
-    <div class="field"><span>Antwort / Lösung</span><textarea class="it-answer">${esc(it.answer)}</textarea></div>
+    <div class="field"><span>Antwort / Lösung</span><textarea class="it-answer">${esc(it.answer)}</textarea></div><div class="muted it-listinfo" style="font-size:11px;margin:-6px 0 8px;line-height:1.35"></div>
     <div class="field"><span>Bild / Eselsbrücke an diesem Ort</span><input class="it-hint" value="${esc(it.hint)}" placeholder="z. B. Ein riesiger Frosch quakt dir ins Ohr"></div>
     <div class="field"><span>Foto als Gedankenstütze</span><input class="it-file" type="file" accept="image/*"></div>
     ${it.photo?`<img class="item-thumb" src="${esc(it.photo)}" alt=""><label class="check"><input type="checkbox" class="it-show" ${it.showInRoom?'checked':''}> Foto neben dem Merkpunkt im Raum zeigen</label><button class="link-btn it-rm">Foto entfernen</button>`:''}`;
     d.querySelector('.item-delete').onclick=()=>{editItems.splice(i,1);renderItems()};
     d.querySelector('.it-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;editItems[i].photo=await photoData(f,800,.7);renderItems()};
-    ['title','question','answer','hint'].forEach(k=>d.querySelector('.it-'+k).oninput=e=>{editItems[i][k]=e.target.value});
+    const upd=()=>{d.querySelector('.it-listinfo').textContent=listInfo(editItems[i].answer)};upd();
+    ['title','question','answer','hint'].forEach(k=>d.querySelector('.it-'+k).oninput=e=>{editItems[i][k]=e.target.value;if(k==='answer')upd()});
     const sh=d.querySelector('.it-show');if(sh)sh.onchange=e=>{editItems[i].showInRoom=e.target.checked};
     const rm=d.querySelector('.it-rm');if(rm)rm.onclick=()=>{editItems[i].photo=null;editItems[i].showInRoom=false;renderItems()};
     host.appendChild(d);
@@ -554,10 +557,36 @@ function showLearnItem(){
   $('learnProgress').textContent=(sessionLabel==='Rundgang'&&it._stops>1?`Ort ${it._stop} von ${it._stops} · `:'')+`${qIndex+1} von ${queue.length}`;
   $('learnPrompt').textContent=it.question?'FRAGE – JETZT AUS DEM GEDÄCHTNIS':'LERNPUNKT – JETZT AUS DEM GEDÄCHTNIS';
   $('learnQuestion').textContent=it.question||it.title;
+  const li0=listItems(it.answer);$('listHint').classList.toggle('hidden',!li0);if(li0)$('listHint').textContent='📋 Liste mit '+li0.length+' Punkten, die Reihenfolge ist egal. Ein Punkt pro Zeile.';$('typed').placeholder=li0?'Ein Punkt pro Zeile …':'Was weißt du dazu?';
   $('solution').classList.add('hidden');$('phaseAnswer').classList.remove('hidden');
   const typed=LS.get('mr_typed',true);$('typeBox').classList.toggle('hidden',!typed);$('thinkBox').classList.toggle('hidden',typed);
   $('typed').value='';hintUsed=false;$('hintStage').classList.add('hidden');dontLabels('Weiß ich nicht');if(typed)setTimeout(()=>$('typed').focus(),80);
 }
+/* Listen-Antworten: pro Zeile ein Punkt mit Strich, Reihenfolge beim Abfragen egal */
+function listItems(a){
+  const lines=String(a||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(lines.length<2||!lines.every(l=>/^[-–•*]\s*/.test(l)))return null;
+  const items=lines.map(l=>l.replace(/^[-–•*]\s*/,'').trim()).filter(Boolean);
+  return items.length>=2?items:null;
+}
+function listInfo(a){const li=listItems(a);return li?`📋 Liste erkannt: ${li.length} Punkte. Beim Abfragen ist die Reihenfolge egal, und du siehst, welche Punkte stimmen.`:'Mehrere Punkte? Schreib pro Zeile einen Strich davor, zum Beispiel -rot, -grün, -blau. Dann ist die Reihenfolge beim Abfragen egal.'}
+function userEntries(v,items){const sep=items.some(x=>/[,;]/.test(x))?/\n+/:/[\n;,]+/;return String(v||'').split(sep).map(x=>x.replace(/^\s*[-–•*]\s*/,'').trim()).filter(Boolean)}
+function matchList(items,entries){
+  const used=new Array(items.length).fill(false),extra=[],keys=items.map(norm);
+  entries.forEach(e=>{
+    const k=norm(e);if(!k)return;
+    let idx=keys.findIndex((x,i)=>!used[i]&&x===k);
+    if(idx<0)idx=keys.findIndex((x,i)=>!used[i]&&x.length>=5&&lev(k,x)<=Math.max(1,Math.floor(x.length*.1)));
+    if(idx>=0)used[idx]=true;else extra.push(e);
+  });
+  return {used,extra,hit:used.filter(Boolean).length,entries:entries.length};
+}
+function renderList(items,lm){
+  let h=items.map((x,i)=>lm?`<div class="li ${lm.used[i]?'ok':'bad'}">${lm.used[i]?'✅':'❌'} ${esc(x)}</div>`:`<div class="li">• ${esc(x)}</div>`).join('');
+  if(lm&&lm.extra.length)h+='<div class="li-extra">Zu viel genannt:</div>'+lm.extra.map(x=>`<div class="li bad">✖ ${esc(x)}</div>`).join('');
+  return h;
+}
+function ansHtml(a){const li=listItems(a);return li?li.map(x=>`<div>• ${esc(x)}</div>`).join(''):`<div style="white-space:pre-wrap">${esc(a)}</div>`}
 function dontLabels(t){$('dontKnow').textContent=t;$('thinkDont').textContent=t}
 function dontKnow(){
   const it=queue[qIndex],h=(it.hint||'').trim();
@@ -567,11 +596,19 @@ function dontKnow(){
 function reveal(userText,mode){
   const it=queue[qIndex];
   $('phaseAnswer').classList.add('hidden');$('solution').classList.remove('hidden');
-  $('solutionText').textContent=it.answer;
+  const li=listItems(it.answer);const lm=(li&&mode==='typed')?matchList(li,userEntries(userText,li)):null;
+  if(li)$('solutionText').innerHTML=renderList(li,lm);else $('solutionText').textContent=it.answer;
   $('solutionHint').textContent=it.hint?'💡 '+it.hint:'';$('solutionHint').classList.toggle('hidden',!it.hint);
   $('solutionPhotoWrap').innerHTML=it.photo?`<img style="width:100%;max-height:260px;object-fit:contain;border-radius:16px;margin-top:10px" src="${esc(it.photo)}" alt="">`:'';
   let fb='',cls='neutral',suggest=null;
   if(mode==='unknown'){fb='Kein Problem. Präge dir die Lösung jetzt bewusst ein und stell dir das Bild an diesem Ort vor.';suggest=0}
+  else if(mode==='typed'&&lm){
+    const tot=li.length,hit=lm.hit,ex=lm.extra.length;
+    if(!lm.entries){fb='Du hast nichts eingegeben.';cls='bad';suggest=0}
+    else if(hit===tot&&!ex){fb=`✅ Alles richtig (${hit} von ${tot})`+(hintUsed?', mit Hilfe der Eselsbrücke.':'.');cls='ok';suggest=hintUsed?1:2}
+    else if(hit===tot){fb=`🟡 Alle ${tot} gefunden, aber ${ex} zu viel genannt.`;cls='neutral';suggest=1}
+    else{fb=`${hit>0?'🟡':'❌'} ${hit} von ${tot} richtig`+(ex?`, ${ex} zu viel genannt`:'')+'. Die ❌ Punkte hast du nicht genannt.';cls=hit>0?'neutral':'bad';suggest=hit*2>=tot?1:0}
+  }
   else if(mode==='typed'){
     const v=(userText||'').trim(),a=norm(it.answer),u=norm(v);
     if(u&&u===a){fb=hintUsed?'✅ Richtig, mit Hilfe der Eselsbrücke.':'✅ Richtig!';cls='ok';suggest=hintUsed?1:2}
@@ -637,7 +674,7 @@ function showRecall(){
 }
 function recallReveal(){
   const m=recallList[recallIdx];
-  $('rcList').innerHTML=m.items.filter(learnable).map(it=>`<div class="item-card"><strong>${esc(it.title||it.question)}</strong><div style="white-space:pre-wrap">${esc(it.answer)}</div>${it.hint?`<small>💡 ${esc(it.hint)}</small>`:''}</div>`).join('');
+  $('rcList').innerHTML=m.items.filter(learnable).map(it=>`<div class="item-card"><strong>${esc(it.title||it.question)}</strong>${ansHtml(it.answer)}${it.hint?`<small>💡 ${esc(it.hint)}</small>`:''}</div>`).join('');
   $('rcAsk').classList.add('hidden');$('rcSolution').classList.remove('hidden');
 }
 async function recallRate(kind){

@@ -1,4 +1,13 @@
-# MemoryRooms v15.1: Update-Anleitung
+# MemoryRooms v15.2: Update-Anleitung
+
+## Neu in v15.2
+- **Antworten als Liste:** Schreib bei „Antwort / Lösung" pro Zeile einen Strich vor jeden Punkt, zum Beispiel
+  `-rot`, `-grün`, `-blau` (jeweils in einer eigenen Zeile). Die App erkennt die Liste und zeigt im Editor „Liste erkannt: 3 Punkte".
+- **Beim Abfragen ist die Reihenfolge egal.** Du siehst vorher „Liste mit 3 Punkten" und gibst pro Zeile einen Punkt ein (Komma oder Semikolon gehen auch).
+- **Auswertung pro Punkt:** ✅ für gefunden, ❌ für nicht genannt, dazu „Zu viel genannt", wenn du etwas Falsches ergänzt hast. Kleine Tippfehler bei längeren Wörtern werden verziehen.
+- **Bewertungsvorschlag:** alles richtig = „Gut", mindestens die Hälfte = „Schwer", weniger = „Nochmal".
+- Gehört ein Komma zu einem Punkt (zum Beispiel `-Berlin, Hauptstadt`), gib die Punkte beim Abfragen bitte zeilenweise ein.
+- Normale Antworten ohne Striche funktionieren wie bisher.
 
 ## Neu in v15.1
 - **Eselsbrücke als Hinweis in Stufen:** Hat ein Lernpunkt eine Eselsbrücke, zeigt „Weiß ich nicht" zuerst nur diese. Du kannst es noch einmal versuchen (Eintippen geht weiter). Ein zweiter Klick („Lösung zeigen") deckt die Lösung auf. Ohne eingetragene Eselsbrücke geht „Weiß ich nicht" wie bisher direkt zur Lösung. Im Modus ohne Eintippen gibt es dafür ebenfalls einen Knopf „Weiß ich nicht".
@@ -20,7 +29,7 @@
 - **Nur nummerierte Punkte (pro Raum):** Raum öffnen → ✏️ Raum → Haken bei „Merkpunkte in diesem Raum nur als nummerierte Punkte zeigen". Dann erscheinen die Merkpunkte dieses Raums als kleine Kreise mit der Nummer der Route, ohne Titel und Foto. Jeder Raum hat seinen eigenen Schalter. Orange Kreise haben eine fällige Wiederholung. Antippen öffnet weiter das Menü mit dem Titel, Anordnen per Ziehen geht auch.
 
 ## Was ist in der ZIP?
-- `index.html`: die App (v15.1)
+- `index.html`: die App (v15.2)
 - `manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`: damit läuft sie als richtige App auf dem Home-Bildschirm und auch offline
 
 **Nicht enthalten:** `room-livingroom.jpg`. Die Datei liegt schon in deinem GitHub-Repository und bleibt dort einfach liegen. Fehlt sie, zeigt die App automatisch ein Ersatzbild.
