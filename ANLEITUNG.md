@@ -1,7 +1,22 @@
-# MemoryRooms v14: Update-Anleitung
+# MemoryRooms v15: Update-Anleitung
+
+## Neu in v15
+**Raum gestalten (🎨 Gestalten im Raum)**
+- **＋ Bild hinzufügen:** eigenes Foto oder eigene Datei, oder eine kleine Vorlage (Fenster, Tür, Bilderrahmen, Pflanze).
+- **Verschieben:** Bild antippen und ziehen.
+- **Größe ändern:** an einem der vier Eckpunkte ziehen, das Seitenverhältnis bleibt.
+- **Zuschneiden (✂️ Zuschnitt):** Rahmen oder Ecken ziehen. Das Original bleibt erhalten, „Ganzes Bild" holt alles zurück.
+- **Kopie, Vorn, Hinten, Löschen:** für mehrere gleiche Fenster und die Reihenfolge der Bilder.
+- Die Bilder gehören **zu jedem Raum einzeln**, liegen unter den Merkpunkten und sind im Backup enthalten.
+- **Tipp:** Ein PNG mit durchsichtigem Hintergrund (zum Beispiel ein ausgeschnittenes Fenster) sieht am besten aus. PNG-Transparenz bleibt erhalten.
+
+**Einfache Raumvorlagen:** Küche, Schlafzimmer, Büro, Werkstatt und Garten sind jetzt schlicht gezeichnet (vorher nur ein Symbol). Neu ist die Vorlage **Leer** (nur Wand und Boden) zum komplett Selbstgestalten. Wählbar unter ✏️ Raum.
+
+## Neu in v14.1
+- **Nur nummerierte Punkte (pro Raum):** Raum öffnen → ✏️ Raum → Haken bei „Merkpunkte in diesem Raum nur als nummerierte Punkte zeigen". Dann erscheinen die Merkpunkte dieses Raums als kleine Kreise mit der Nummer der Route, ohne Titel und Foto. Jeder Raum hat seinen eigenen Schalter. Orange Kreise haben eine fällige Wiederholung. Antippen öffnet weiter das Menü mit dem Titel, Anordnen per Ziehen geht auch.
 
 ## Was ist in der ZIP?
-- `index.html`: die App (v14)
+- `index.html`: die App (v15)
 - `manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`: damit läuft sie als richtige App auf dem Home-Bildschirm und auch offline
 
 **Nicht enthalten:** `room-livingroom.jpg`. Die Datei liegt schon in deinem GitHub-Repository und bleibt dort einfach liegen. Fehlt sie, zeigt die App automatisch ein Ersatzbild.
